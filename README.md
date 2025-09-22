@@ -1,11 +1,11 @@
 # Ecommerce Web Automation
 
+[![Tests](https://github.com/MaryRes/ecommerce-web-automation/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/MaryRes/ecommerce-web-automation/actions)
 [![Python](https://img.shields.io/badge/Python-3.12.3-blue)]()
 [![Pytest](https://img.shields.io/badge/pytest-8.4.1-green)]()
 [![Selenium](https://img.shields.io/badge/selenium-4.34.2-orange)]()
 [![Allure](https://img.shields.io/badge/allure-2.15.0-red)]()
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)]()
-[![Tests](https://github.com/MaryRes/ecommerce-web-automation/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/MaryRes/ecommerce-web-automation/actions)
 
 Automated test suite for e-commerce website verification using Python and Selenium WebDriver.
 
