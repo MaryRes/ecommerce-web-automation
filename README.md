@@ -48,6 +48,9 @@ pytest tests/ --alluredir=allure-results
 # Run specific test category
 pytest tests/ui/ -v
 pytest tests/e2e/ -v
+# Run with detailed logging
+pytest tests/ -v -s --log-cli-level=INFO --tb=short
+
 ```
 
 ### Viewing Reports
