@@ -16,6 +16,13 @@ import time
 # Import project settings
 from config import settings
 
+import sys
+from pathlib import Path
+
+# Fix path issues for imports
+ROOT_DIR = Path(__file__).parent
+sys.path.insert(0, str(ROOT_DIR))
+
 # Setup logging
 logging.basicConfig(
     level=getattr(logging, settings.LOG_LEVEL),
@@ -33,8 +40,8 @@ def pytest_addoption(parser):
     )
     parser.addoption(
         '--headless',
-        action='store_true',
-        default=settings.DEFAULT_HEADLESS,
+        action='store',
+        default=str(settings.DEFAULT_HEADLESS).lower(),
         help='Run browser in headless mode'
     )
     parser.addoption(
@@ -49,8 +56,10 @@ def browser(request):
     """Main browser fixture using settings"""
 
     browser_name = request.config.getoption("--browser")
-    headless = request.config.getoption("--headless")
+    headless_str = request.config.getoption("--headless")
     language = request.config.getoption("--language")
+
+    headless = headless_str.lower() == 'true'
 
     logger.info(f"Starting {browser_name} browser (headless: {headless}, language: {language})")
 
