@@ -5,6 +5,8 @@ from selenium.webdriver.common.by import By
 logger = logging.getLogger(__name__)
 
 # pytest tests/test_login_smoke.py -v
+# pytest -v -s --log-cli-level=INFO --tb=short tests/ui/smoke/test_login_smoke.py
+@pytest.mark.smoke
 class TestLoginPageSmoke:
     """Smoke tests for login page - basic functionality check."""
 

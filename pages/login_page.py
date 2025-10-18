@@ -1,13 +1,24 @@
+import time
+
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
 import logging
 from typing import Tuple
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 from .base_page import BasePage
 from .locators import LoginPageLocators, BasePageLocators
 
-# Setup logger
 logger = logging.getLogger(__name__)
+
+
+# TODO: переписать функции с использованием функций из base_page особенно ВНИМАНИЕ НА ОЖИДАНИЯ!!!
+# TODO: сделать коммит и пуш
+# TODO: убрать избыточные проверки и ожидания
+# TODO: добавить типизацию
+# TODO: добавить allure шаги
+# TODO: docker
+# TODO: параллельный запуск тестов
 
 class LoginPage(BasePage):
     """Page Object for login/registration page."""
@@ -21,121 +32,80 @@ class LoginPage(BasePage):
 
     def should_be_login_url(self) -> None:
         """Verify that current URL contains 'login'."""
-        current_url = self.browser.current_url
-        assert "login" in current_url.lower(), f"Login URL not correct. Current: {current_url}"
+        self.assert_url_contains("/login")
         logger.debug("Login URL validation passed")
 
     def should_be_login_form(self) -> None:
         """Verify that login form is present."""
-        try:
-            is_present = self.wait_for_element_present(LoginPageLocators.LOGIN_FORM)
-            assert is_present, "Login form is not present on the page"
-            logger.debug("Login form validation passed")
-
-        except Exception as e:
-            logger.error(f"Error checking login form: {e}")
-            raise AssertionError(f"Login form validation failed: {e}")
+        # No waiting - implicit wait already works
+        assert self.is_element_present(*LoginPageLocators.LOGIN_FORM), \
+            "Login form is not present on the page"
+        logger.debug("Login form validation passed")
 
     def should_be_register_form(self) -> None:
         """Verify that registration form is present."""
-        try:
-            is_present = self.wait_for_element_present(LoginPageLocators.REGISTER_FORM)
-            assert is_present, "Registration form is not present on the page"
-            logger.debug("Registration form validation passed")
+        # No waiting - implicit wait already works
+        assert self.is_element_present(*LoginPageLocators.REGISTER_FORM), \
+            "Registration form is not present on the page"
+        logger.debug("Registration form validation passed")
 
-        except Exception as e:
-            logger.error(f"Error checking registration form: {e}")
-            raise AssertionError(f"Registration form validation failed: {e}")
-    def register_new_user(self, email: str, password: str) -> None:
-        """Register a new user with given credentials."""
-        try:
-            # Find registration form elements (adjust selectors based on actual form)
-            email_field = self.wait.until(
-                EC.element_to_be_clickable(LoginPageLocators.REGISTER_EMAIL_FIELD)
-            )
-            password_field = self.browser.find_element(*LoginPageLocators.REGISTER_PASSWORD_FIELD)
-            confirm_password_field = self.browser.find_element(*LoginPageLocators.REGISTER_CONFIRM_PASSWORD_FIELD)
-            submit_button = self.browser.find_element(*LoginPageLocators.REGISTER_SUBMIT_BUTTON)
-
-            # Fill registration form
-            email_field.clear()
-            email_field.send_keys(email)
-
-            password_field.clear()
-            password_field.send_keys(password)
-
-            confirm_password_field.clear()
-            confirm_password_field.send_keys(password)
-
-            # Submit registration
-            submit_button.click()
-            logger.info(f"Registered new user: {email}")
-
-        except Exception as e:
-            logger.error(f"Error during user registration: {e}")
-            raise
-
-    def login_user(self, email: str, password: str) -> None:
-        """Login with existing user credentials."""
-        try:
-            # Find login form elements (adjust selectors based on actual form)
-            email_field = self.wait.until(
-                EC.element_to_be_clickable(LoginPageLocators.LOGIN_EMAIL_FIELD)
-            )
-            password_field = self.browser.find_element(*LoginPageLocators.LOGIN_PASSWORD_FIELD)
-            login_button = self.browser.find_element(*LoginPageLocators.LOGIN_SUBMIT_BUTTON)
-
-            # Fill login form
-            email_field.clear()
-            email_field.send_keys(email)
-
-            password_field.clear()
-            password_field.send_keys(password)
-
-            # Submit login
-            login_button.click()
-            logger.info(f"User logged in: {email}")
-
-        except Exception as e:
-            logger.error(f"Error during user login: {e}")
-            raise
-
-    def should_be_successful_login(self) -> None:
-        """Verify that login was successful."""
-        # Check for success indicators (adjust based on actual site behavior)
-        try:
-            # Example: check if user is redirected away from login page
-            assert "login" not in self.browser.current_url.lower(), "Still on login page after login"
-
-            # Or check for user menu/logout button
-            # assert self.is_element_present(*MainPageLocators.USER_MENU), "User menu not found after login"
-
-            logger.info("Login successful")
-
-        except Exception as e:
-            logger.error(f"Login verification failed: {e}")
-            raise
+    def should_be_logged_in(self) -> None:
+        """Verify that user is successfully logged in."""
+        assert self.is_element_present(BasePageLocators.USER_ICON), "User icon not found - login failed"
+        logger.info("Login successful")
 
     def should_be_successful_registration(self) -> None:
-        """Verify that registration was successful."""
-        try:
-            # Check for success message or redirect
-            # assert "registration complete" in self.browser.page_source.lower()
-            assert "login" in self.browser.current_url.lower(), "Not redirected after registration"
-            logger.info("Registration successful")
+        """Verify registration success using language-agnostic checks."""
+        # 1. check we are not on login page anymore
+        current_url = self.get_current_url().lower()
+        assert "login" not in current_url, "Still on registration page"
 
-        except Exception as e:
-            logger.error(f"Registration verification failed: {e}")
-            raise
+        # 2. Check success notification (language-agnostic)
+        assert self.is_element_present(LoginPageLocators.REGISTRATION_SUCCESS), \
+            "Success notification not found"
+
+        # 3. Check user icon presence
+        assert self.is_element_present(BasePageLocators.USER_ICON), \
+            "User not logged in after registration"
+
+        # 4. Check absence of error messages
+        assert self.is_not_element_present(BasePageLocators.ERROR_ALERT), \
+            "Error message present after registration"
+
+        logger.info("Registration successful")
+
+    def register_new_user(self, email: str, password: str) -> None:
+        """Register a new user - only performs the action."""
+        # Fill the registration form
+        self.send_keys(LoginPageLocators.REGISTER_EMAIL_FIELD, email)
+        self.send_keys(LoginPageLocators.REGISTER_PASSWORD_FIELD, password)
+        self.send_keys(LoginPageLocators.REGISTER_CONFIRM_PASSWORD_FIELD, password)
+
+        # Submit registration
+        self.click(LoginPageLocators.REGISTER_SUBMIT_BUTTON)
+
+        logger.info(f"Attempted to register user: {email}")
+
+    def login_user(self, email: str, password: str) -> None:
+        """Login user - only performs the action."""
+        # Fill the login form
+        self.send_keys(LoginPageLocators.LOGIN_EMAIL_FIELD, email)
+        self.send_keys(LoginPageLocators.LOGIN_PASSWORD_FIELD, password)
+
+        # Submit login
+        self.click(LoginPageLocators.LOGIN_SUBMIT_BUTTON)
+
+        logger.info(f"Attempted to login user: {email}")
+
+
 
     def go_to_login_page(self) -> None:
-        """Override base method for login page-specific behavior."""
-        try:
-            # Use the improved click method from base page
-            self.click_element(BasePageLocators.LOGIN_LINK)
-            self.wait.until(EC.url_contains("login"))
-            logger.debug("Navigated to login page")
+        """Navigate to login page using BasePage methods."""
+        self.click(BasePageLocators.LOGIN_LINK)
+        success = self.wait_for_url_contains("/login")
+        assert success, "Failed to navigate to login page"
+        logger.info("Navigated to login page")
 
-        except Exception as e:
-            logger.error(f"Error navigating to login page: {e}")
-            raise
+    def _generate_unique_email(self) -> str:
+        """Generate unique email for testing."""
+        return f"test_{time.time()}@example.com"

@@ -5,6 +5,9 @@ class BasePageLocators:
     """Locators common for all pages"""
     LOGIN_LINK = (By.CSS_SELECTOR, "#login_link")
     LOGIN_LINK_INVALID = (By.CSS_SELECTOR, "#login_link_inc")
+    USER_ICON = (By.CSS_SELECTOR, "i.icon-user")
+    SUCCESS_ALERT = (By.CSS_SELECTOR, ".alert-success")
+    ERROR_ALERT = (By.CSS_SELECTOR, ".alert-danger")
 
 
 class BasketPageLocators:
@@ -39,6 +42,9 @@ class LoginPageLocators:
 
     # Form header
     LOGIN_HEADER = (By.CSS_SELECTOR, 'h1')
+
+    # success message after registration
+    REGISTRATION_SUCCESS = (By.CSS_SELECTOR, ".alert-success")
 
 
 class ProductPageLocators:
