@@ -1,0 +1,62 @@
+# .github/workflows/full-pipeline.yml
+name: Full CI Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  qodana:
+    runs-on: ubuntu-latest
+    name: "Qodana Code Quality"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Qodana Scan
+        uses: JetBrains/qodana-action@v2024.1
+        env:
+          QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
+
+  test-local:
+    runs-on: ubuntu-latest
+    name: "Test: Local Python"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run tests with Allure
+        run: python -m pytest tests/ -v --alluredir=allure-results-local
+
+  test-docker:
+    runs-on: ubuntu-latest
+    name: "Test: Docker Container"
+    needs: [test-local]  # ← УБРАЛ qodana из needs, иначе если Qodana упадет - Docker тесты не запустятся
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t qa-tests .
+      - name: Run tests in Docker with Allure
+        run: |
+          docker run --rm -v $(pwd)/allure-results-docker:/app/allure-results qa-tests python -m pytest tests/ -v --alluredir=allure-results
+
+  allure-report:
+    runs-on: ubuntu-latest
+    name: "Generate Allure Report"
+    needs: [test-local, test-docker]
+    if: always()
+    steps:
+      - name: Download Allure results
+        uses: actions/download-artifact@v4
+        with:
+          path: ./
+      - name: Generate Allure report
+        uses: simple-elf/allure-report-action@master
+        with:
+          allure_results: allure-results-local/ allure-results-docker/
+          allure_history: allure-history
+      - name: Upload Allure report
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report/
