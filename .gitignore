@@ -209,7 +209,22 @@ __marimo__/
 # Test reports
 allure-results/
 pytest-reports/
+screenshots/
 
 # IDE
 .vscode/
 .idea/
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# .dockerignore
+.git/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+reports/
+allure-report/
+.DS_Store

@@ -1,3 +1,5 @@
+# TODO: _take_screenshot method to be implemented if needed!!!
+
 import math
 import time
 import logging
@@ -306,7 +308,7 @@ class BasePage:
 
     # ====== UTILITY METHODS ======
 
-    def _take_screenshot(self, name: str) -> str:
+    def c(self, name: str) -> str:
         """Take page screenshot and return file path."""
         filename = f"screenshots/{name}_{int(time.time())}.png"
         self.browser.save_screenshot(filename)

@@ -30,6 +30,8 @@ class LoginPageLocators:
     LOGIN_EMAIL_FIELD = (By.CSS_SELECTOR, 'input[name="login-username"]')
     LOGIN_PASSWORD_FIELD = (By.CSS_SELECTOR, 'input[name="login-password"]')
     LOGIN_SUBMIT_BUTTON = (By.CSS_SELECTOR, 'button[name="login_submit"]')
+    # success message after login
+    LOGIN_SUCCESS = (By.CSS_SELECTOR, ".alert-success")
 
     # Registration form fields
     REGISTER_EMAIL_FIELD = (By.CSS_SELECTOR, 'input[name="registration-email"]')
@@ -45,6 +47,7 @@ class LoginPageLocators:
 
     # success message after registration
     REGISTRATION_SUCCESS = (By.CSS_SELECTOR, ".alert-success")
+
 
 
 class ProductPageLocators:

@@ -1,6 +1,11 @@
 import time
+from typing import Tuple, Optional
+
 import allure
 import logging
+
+from selenium.webdriver.common.by import By
+
 from .base_page import BasePage
 from .locators import LoginPageLocators, BasePageLocators
 
@@ -96,6 +101,31 @@ class LoginPage(BasePage):
     def should_be_logged_in(self) -> None:
         """Verify that user is successfully logged in."""
         assert self.is_element_present(BasePageLocators.USER_ICON), "User icon not found - login failed"
+        logger.info("Login successful")
+
+    @allure.step("Verify successful registration")
+    def should_be_successful_login(self) -> None:
+        """Verify login success using language-agnostic checks."""
+        # 1. Check success notification (language-agnostic)
+        with allure.step("Check login success notification"):
+            assert self.is_element_present(LoginPageLocators.LOGIN_SUCCESS), \
+                "Success notification not found"
+
+        # 2. Check user icon presence
+        with allure.step("Check user icon presence after login"):
+            assert self.is_element_present(BasePageLocators.USER_ICON), \
+                "User not logged in after login"
+
+        # 3. Check absence of error messages
+        with allure.step("Check absence of error messages after login"):
+            assert self.is_not_element_present(BasePageLocators.ERROR_ALERT), \
+                "Error message present after login"
+
+        # 4. check we are not on login page anymore
+        with allure.step("Check URL after login"):
+            current_url = self.get_current_url().lower()
+            assert "login" not in current_url, "Still on login page"
+
         logger.info("Login successful")
 
     @allure.step("Verify successful registration")
