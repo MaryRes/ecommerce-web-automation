@@ -101,10 +101,6 @@ class LoginPage(BasePage):
     @allure.step("Verify successful registration")
     def should_be_successful_registration(self) -> None:
         """Verify registration success using language-agnostic checks."""
-        # 1. check we are not on login page anymore
-        with allure.step("Check URL after registration"):
-            current_url = self.get_current_url().lower()
-            assert "login" not in current_url, "Still on registration page"
 
         # 2. Check success notification (language-agnostic)
         with allure.step("Check registration success notification"):
@@ -120,6 +116,11 @@ class LoginPage(BasePage):
         with allure.step("Check absence of error messages after registration"):
             assert self.is_not_element_present(BasePageLocators.ERROR_ALERT), \
                 "Error message present after registration"
+
+        # 1. check we are not on login page anymore
+        with allure.step("Check URL after registration"):
+            current_url = self.get_current_url().lower()
+            assert "login" not in current_url, "Still on registration page"
 
         logger.info("Registration successful")
 
