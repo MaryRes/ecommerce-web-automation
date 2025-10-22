@@ -4,25 +4,6 @@ name: Full CI Pipeline
 on: [push, pull_request]
 
 jobs:
-  qodana:
-    runs-on: ubuntu-latest
-    name: "Qodana Code Quality"
-    steps:
-      - uses: actions/checkout@v4
-      - name: Qodana Scan
-        uses: JetBrains/qodana-action@v2024.1
-        env:
-          QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
-        continue-on-error: true
-      - name: Upload Qodana Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: qodana-report
-          path: |
-            .qodana/
-          retention-days: 30
-
   test-local:
     runs-on: ubuntu-latest
     name: "Test: Local Python"
@@ -34,11 +15,8 @@ jobs:
           python-version: '3.12'
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Run tests with Allure
-        run: |
-          python -m pytest tests/ -v --alluredir=allure-results
-          echo "Allure results generated:"
-          find allure-results/ -name "*.json" | wc -l
+      - name: Run tests
+        run: python -m pytest tests/ -v
 
   test-docker:
     runs-on: ubuntu-latest
@@ -51,69 +29,14 @@ jobs:
       - name: Run tests in Docker
         run: docker run --rm qa-tests python -m pytest tests/ -v
 
-  allure-report:
+  summary:
     runs-on: ubuntu-latest
-    name: "Generate Allure Report"
-    needs: [test-local]
+    name: "Test Summary"
+    needs: [test-local, test-docker]
     if: always()
     steps:
-      - name: Check Allure results
+      - name: Print summary
         run: |
-          echo "Checking Allure results..."
-          find allure-results/ -name "*.json" | head -5
-          echo "Total JSON files: $(find allure-results/ -name "*.json" | wc -l)"
-      - name: Generate Allure report
-        uses: simple-elf/allure-report-action@master
-        with:
-          allure_results: allure-results/
-          allure_history: allure-history
-      - name: Upload Allure report
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-report
-          path: allure-report/
-          retention-days: 30
-
-  deploy-reports:
-    runs-on: ubuntu-latest
-    name: "Deploy Reports to GitHub Pages"
-    needs: [qodana, allure-report]
-    if: github.ref == 'refs/heads/main'
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Download and setup reports
-        run: |
-          mkdir -p _reports/allure _reports/qodana
-          # Создаем заглушки если отчетов нет
-          echo "<html><body><h1>No Qodana report available</h1></body></html>" > _reports/qodana/index.html
-          echo "<html><body><h1>No Allure report available</h1></body></html>" > _reports/allure/index.html
-      - name: Create index page
-        run: |
-          cat > _reports/index.html << 'EOF'
-          <!DOCTYPE html>
-          <html>
-          <head><title>QA Reports</title></head>
-          <body>
-            <h1>QA Automation Reports</h1>
-            <p><a href="./allure/index.html">Allure Test Reports</a></p>
-            <p><a href="./qodana/index.html">Qodana Code Analysis</a></p>
-          </body>
-          </html>
-          EOF
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: _reports/
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          echo "🎉 TESTS COMPLETED!"
+          echo "Local tests: ${{ needs.test-local.result }}"
+          echo "Docker tests: ${{ needs.test-docker.result }}"
