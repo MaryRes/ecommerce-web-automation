@@ -14,6 +14,13 @@ jobs:
         env:
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
         continue-on-error: true
+      - name: Upload Qodana Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: qodana-report
+          path: |
+            qodana/
+          retention-days: 30
 
   test-local:
     runs-on: ubuntu-latest
@@ -27,37 +34,102 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Run tests with Allure
-        run: python -m pytest tests/ -v --alluredir=allure-results-local
+        run: python -m pytest tests/ -v --alluredir=allure-results
 
   test-docker:
     runs-on: ubuntu-latest
     name: "Test: Docker Container"
-    needs: [test-local]  # ← УБРАЛ qodana из needs, иначе если Qodana упадет - Docker тесты не запустятся
+    needs: [test-local]
     steps:
       - uses: actions/checkout@v4
       - name: Build Docker image
         run: docker build -t qa-tests .
-      - name: Run tests in Docker with Allure
-        run: |
-          docker run --rm -v $(pwd)/allure-results-docker:/app/allure-results qa-tests python -m pytest tests/ -v --alluredir=allure-results
+      - name: Run tests in Docker
+        run: docker run --rm qa-tests python -m pytest tests/ -v
 
   allure-report:
     runs-on: ubuntu-latest
     name: "Generate Allure Report"
-    needs: [test-local, test-docker]
+    needs: [test-local]
     if: always()
     steps:
-      - name: Download Allure results
-        uses: actions/download-artifact@v4
-        with:
-          path: ./
       - name: Generate Allure report
         uses: simple-elf/allure-report-action@master
         with:
-          allure_results: allure-results-local/ allure-results-docker/
+          allure_results: allure-results/
           allure_history: allure-history
       - name: Upload Allure report
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
           path: allure-report/
+          retention-days: 30
+
+  deploy-reports:
+    runs-on: ubuntu-latest
+    name: "Deploy Reports to GitHub Pages"
+    needs: [qodana, allure-report]
+    if: github.ref == 'refs/heads/main'  # Deploy only from main branch
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Allure Report
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-report
+          path: _reports/allure/
+
+      - name: Download Qodana Report
+        uses: actions/download-artifact@v4
+        with:
+          name: qodana-report
+          path: _reports/qodana/
+
+      - name: Create index page
+        run: |
+          cat > _reports/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>QA Reports</title>
+              <style>
+                  body { font-family: Arial, sans-serif; margin: 40px; }
+                  .card { border: 1px solid #ddd; padding: 20px; margin: 10px 0; border-radius: 5px; }
+                  a { color: #0366d6; text-decoration: none; }
+                  a:hover { text-decoration: underline; }
+              </style>
+          </head>
+          <body>
+              <h1>📊 QA Automation Reports</h1>
+              <div class="card">
+                  <h2><a href="./allure/index.html">🧪 Allure Test Reports</a></h2>
+                  <p>Detailed test execution reports with trends and analytics</p>
+              </div>
+              <div class="card">
+                  <h2><a href="./qodana/index.html">🔍 Qodana Code Analysis</a></h2>
+                  <p>Static code analysis and quality reports</p>
+              </div>
+              <p><small>Generated automatically on $(date)</small></p>
+          </body>
+          </html>
+          EOF
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _reports/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
