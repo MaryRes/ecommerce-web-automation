@@ -15,7 +15,8 @@ from pages.login_page import LoginPage
 from data.test_data import test_data
 
 # python -m pytest tests/ui/functional/test_login_functional.py::TestLoginFunctional::test_login_with_valid_credentials -v
-
+# docker run --rm -v ${PWD}:/app qa-tests python -m pytest tests/ui/functional/test_login_functional.py -v
+#docker run --rm -v ${PWD}:/app qa-tests pytest my_new_test -v
 @pytest.mark.functional
 @allure.epic("Authentication")
 @allure.feature("Login Functional Tests")
@@ -41,6 +42,7 @@ class TestLoginFunctional:
         with allure.step("Verify user is successfully logged in"):
             login_page.should_be_successful_login()
 
+    @pytest.mark.new
     @allure.title("Login with invalid email format")
     @allure.severity(allure.severity_level.NORMAL)
     @allure.tag("negative", "validation")
@@ -53,14 +55,16 @@ class TestLoginFunctional:
             login_page.open()
 
         with allure.step(f"Attempt login with invalid email: {invalid_email}"):
-            user_credentials = test_data.valid_user
-            email = "i" + user_credentials["email"]
-            password = user_credentials["password"]
-            login_page.login_user(email, password)
-        with allure.step("Verify validation error message is shown"):
-            # TODO: Implement error message verification
-            #login_page.should_be_error_message()
-            pass
+            password = ""
+            login_page.login_user(invalid_email, password)
+        with allure.step("Verify error message is shown"):
+            # Implement error message verification
+            login_page.should_be_invalid_email_message()
+
+        with allure.step("Verify user NOT logged in"):
+            login_page.should_be_login_page()
+            login_page.should_be_login_url()
+
 
     @allure.title("Login with non-existent email")
     @allure.severity(allure.severity_level.NORMAL)

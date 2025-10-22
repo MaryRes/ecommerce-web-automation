@@ -69,7 +69,6 @@ class LoginPage(BasePage):
         self.should_be_element_accessible(LoginPageLocators.REGISTER_EMAIL_FIELD, "Registration email field")
         logger.debug("Registration email field is accessible")
 
-
     @allure.step("Verify registration password field accessibility")
     def should_have_accessible_registration_password_field(self) -> None:
         """Verify that registration password field is present and clickable."""
@@ -79,7 +78,8 @@ class LoginPage(BasePage):
     @allure.step("Verify registration confirm password field accessibility")
     def should_have_accessible_registration_confirm_password_field(self) -> None:
         """Verify that registration confirm password field is present and clickable."""
-        self.should_be_element_accessible(LoginPageLocators.REGISTER_CONFIRM_PASSWORD_FIELD, "Registration confirm password field")
+        self.should_be_element_accessible(LoginPageLocators.REGISTER_CONFIRM_PASSWORD_FIELD,
+                                          "Registration confirm password field")
         logger.debug("Registration confirm password field is accessible")
 
     @allure.step("Verify login submit button is accessible")
@@ -93,7 +93,6 @@ class LoginPage(BasePage):
         """Verify that registration submit button is present and clickable."""
         self.should_be_element_accessible(LoginPageLocators.REGISTER_SUBMIT_BUTTON, "Registration submit button")
         logger.debug("Registration submit button is accessible")
-
 
     # ===== USER ACTIONS =====
 
@@ -153,6 +152,13 @@ class LoginPage(BasePage):
             assert "login" not in current_url, "Still on registration page"
 
         logger.info("Registration successful")
+
+    @allure.step("Verify invalid email message is displayed")
+    def should_be_invalid_email_message(self) -> None:
+        """Verify that invalid email message is displayed."""
+        assert self.is_element_present(LoginPageLocators.LOGIN_INCORRECT_MESSAGE), \
+            "Invalid email message not displayed"
+        logger.info("Invalid email message is displayed")
 
     @allure.step("Register new user")
     def register_new_user(self, email: str, password: str) -> None:

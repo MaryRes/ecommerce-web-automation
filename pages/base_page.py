@@ -271,6 +271,13 @@ class BasePage:
         assert expected_substring in actual_text, f"Element {element_name} text does not contain '{expected_substring}'"
         logger.debug("Element %s text contains expected substring: %s", element_name, expected_substring)
 
+
+    # ==============
+    def should_be_error_message(self) -> None:
+        """Verify that error message is displayed."""
+        assert self.is_element_present(BasePageLocators.ERROR_ALERT), "Error message is not displayed"
+        logger.debug("Error message is displayed")
+
     # ====== ASSERTION METHODS ======
     @allure.step("Verify that login link is present")
     def should_have_login_link(self) -> None:
@@ -308,7 +315,7 @@ class BasePage:
 
     # ====== UTILITY METHODS ======
 
-    def c(self, name: str) -> str:
+    def _take_screenshot(self, name: str) -> str:
         """Take page screenshot and return file path."""
         filename = f"screenshots/{name}_{int(time.time())}.png"
         self.browser.save_screenshot(filename)
