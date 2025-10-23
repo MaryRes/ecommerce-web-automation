@@ -42,7 +42,7 @@ class TestLoginFunctional:
         with allure.step("Verify user is successfully logged in"):
             login_page.should_be_successful_login()
 
-    @pytest.mark.new
+
     @allure.title("Login with invalid email format")
     @allure.severity(allure.severity_level.NORMAL)
     @allure.tag("negative", "validation")
@@ -65,7 +65,7 @@ class TestLoginFunctional:
             login_page.should_be_login_page()
             login_page.should_be_login_url()
 
-
+    @pytest.mark.new
     @allure.title("Login with non-existent email")
     @allure.severity(allure.severity_level.NORMAL)
     @allure.tag("negative", "validation")
@@ -77,13 +77,20 @@ class TestLoginFunctional:
             login_page.open()
 
         with allure.step("Attempt login with non-existent email"):
-            # TODO: Use generated email that doesn't exist
-            pass
+            # Use generated email that doesn't exist
+            non_existent_email = login_page.generate_unique_email()
+            password = ""
+            login_page.login_user(non_existent_email, password)
 
         with allure.step("Verify appropriate error message is displayed"):
-            # TODO: Implement error message verification
-            pass
+            # Implement error message verification
+            login_page.should_be_invalid_email_message()
 
+        with allure.step("Verify user NOT logged in"):
+            login_page.should_be_login_page()
+            login_page.should_be_login_url()
+
+    @pytest.mark.new
     @allure.title("Login with incorrect password")
     @allure.severity(allure.severity_level.NORMAL)
     @allure.tag("negative", "security")
@@ -95,12 +102,19 @@ class TestLoginFunctional:
             login_page.open()
 
         with allure.step("Attempt login with correct email but wrong password"):
-            # TODO: Use valid email with wrong password
-            pass
+            # Use valid email with wrong password
+            user_credentials = test_data.valid_user
+            valid_email = user_credentials["email"]
+            wrong_password = "Wrong" + user_credentials["password"]
+            login_page.login_user(valid_email, wrong_password)
 
         with allure.step("Verify authentication error is shown"):
-            # TODO: Implement error message verification
-            pass
+            # Implement error message verification
+            login_page.should_be_invalid_password_message()
+
+        with allure.step("Verify user NOT logged in"):
+            login_page.should_be_login_page()
+            login_page.should_be_login_url()
 
     @allure.title("Login with empty credentials")
     @allure.severity(allure.severity_level.NORMAL)
