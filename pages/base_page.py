@@ -1,3 +1,5 @@
+# TODO: _take_screenshot method to be implemented if needed!!!
+
 import math
 import time
 import logging
@@ -268,6 +270,13 @@ class BasePage:
         actual_text = self.get_text(locator, timeout)
         assert expected_substring in actual_text, f"Element {element_name} text does not contain '{expected_substring}'"
         logger.debug("Element %s text contains expected substring: %s", element_name, expected_substring)
+
+
+    # ==============
+    def should_be_error_message(self) -> None:
+        """Verify that error message is displayed."""
+        assert self.is_element_present(BasePageLocators.ERROR_ALERT), "Error message is not displayed"
+        logger.debug("Error message is displayed")
 
     # ====== ASSERTION METHODS ======
     @allure.step("Verify that login link is present")

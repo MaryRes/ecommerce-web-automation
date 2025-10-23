@@ -1,6 +1,11 @@
 import time
+from typing import Tuple, Optional
+
 import allure
 import logging
+
+from selenium.webdriver.common.by import By
+
 from .base_page import BasePage
 from .locators import LoginPageLocators, BasePageLocators
 
@@ -64,7 +69,6 @@ class LoginPage(BasePage):
         self.should_be_element_accessible(LoginPageLocators.REGISTER_EMAIL_FIELD, "Registration email field")
         logger.debug("Registration email field is accessible")
 
-
     @allure.step("Verify registration password field accessibility")
     def should_have_accessible_registration_password_field(self) -> None:
         """Verify that registration password field is present and clickable."""
@@ -74,7 +78,8 @@ class LoginPage(BasePage):
     @allure.step("Verify registration confirm password field accessibility")
     def should_have_accessible_registration_confirm_password_field(self) -> None:
         """Verify that registration confirm password field is present and clickable."""
-        self.should_be_element_accessible(LoginPageLocators.REGISTER_CONFIRM_PASSWORD_FIELD, "Registration confirm password field")
+        self.should_be_element_accessible(LoginPageLocators.REGISTER_CONFIRM_PASSWORD_FIELD,
+                                          "Registration confirm password field")
         logger.debug("Registration confirm password field is accessible")
 
     @allure.step("Verify login submit button is accessible")
@@ -89,13 +94,37 @@ class LoginPage(BasePage):
         self.should_be_element_accessible(LoginPageLocators.REGISTER_SUBMIT_BUTTON, "Registration submit button")
         logger.debug("Registration submit button is accessible")
 
-
     # ===== USER ACTIONS =====
 
     @allure.step("Verify user is logged in")
     def should_be_logged_in(self) -> None:
         """Verify that user is successfully logged in."""
         assert self.is_element_present(BasePageLocators.USER_ICON), "User icon not found - login failed"
+        logger.info("Login successful")
+
+    @allure.step("Verify successful registration")
+    def should_be_successful_login(self) -> None:
+        """Verify login success using language-agnostic checks."""
+        # 1. Check success notification (language-agnostic)
+        with allure.step("Check login success notification"):
+            assert self.is_element_present(LoginPageLocators.LOGIN_SUCCESS), \
+                "Success notification not found"
+
+        # 2. Check user icon presence
+        with allure.step("Check user icon presence after login"):
+            assert self.is_element_present(BasePageLocators.USER_ICON), \
+                "User not logged in after login"
+
+        # 3. Check absence of error messages
+        with allure.step("Check absence of error messages after login"):
+            assert self.is_not_element_present(BasePageLocators.ERROR_ALERT), \
+                "Error message present after login"
+
+        # 4. check we are not on login page anymore
+        with allure.step("Check URL after login"):
+            current_url = self.get_current_url().lower()
+            assert "login" not in current_url, "Still on login page"
+
         logger.info("Login successful")
 
     @allure.step("Verify successful registration")
@@ -123,6 +152,13 @@ class LoginPage(BasePage):
             assert "login" not in current_url, "Still on registration page"
 
         logger.info("Registration successful")
+
+    @allure.step("Verify invalid email message is displayed")
+    def should_be_invalid_email_message(self) -> None:
+        """Verify that invalid email message is displayed."""
+        assert self.is_element_present(LoginPageLocators.LOGIN_INCORRECT_MESSAGE), \
+            "Invalid email message not displayed"
+        logger.info("Invalid email message is displayed")
 
     @allure.step("Register new user")
     def register_new_user(self, email: str, password: str) -> None:

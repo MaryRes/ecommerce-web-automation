@@ -1,0 +1,42 @@
+# .github/workflows/full-pipeline.yml
+name: Full CI Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  test-local:
+    runs-on: ubuntu-latest
+    name: "Test: Local Python"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run tests
+        run: python -m pytest tests/ -v
+
+  test-docker:
+    runs-on: ubuntu-latest
+    name: "Test: Docker Container"
+    needs: [test-local]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t qa-tests .
+      - name: Run tests in Docker
+        run: docker run --rm qa-tests python -m pytest tests/ -v
+
+  summary:
+    runs-on: ubuntu-latest
+    name: "Test Summary"
+    needs: [test-local, test-docker]
+    if: always()
+    steps:
+      - name: Print summary
+        run: |
+          echo "🎉 TESTS COMPLETED!"
+          echo "Local tests: ${{ needs.test-local.result }}"
+          echo "Docker tests: ${{ needs.test-docker.result }}"

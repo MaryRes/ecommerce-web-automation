@@ -207,9 +207,29 @@ marimo/_lsp/
 __marimo__/
 
 # Test reports
-allure-results/
 pytest-reports/
+screenshots/
+
+# For Allure reports
+allure-results/
+allure-results-local/
+allure-results-docker/
+allure-report/
 
 # IDE
 .vscode/
 .idea/
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# .dockerignore
+.git/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+reports/
+allure-report/
+.DS_Store
