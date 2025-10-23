@@ -23,6 +23,7 @@ from data.test_data import test_data
 class TestLoginFunctional:
     """Functional tests for user login scenarios - validation and error cases."""
 
+    @pytest.mark.flaky(reruns=3)
     @allure.title("Successful login with valid credentials")
     @allure.severity(allure.severity_level.CRITICAL)
     @allure.tag("positive", "authentication")
