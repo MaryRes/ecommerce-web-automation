@@ -133,12 +133,19 @@ class TestLoginFunctional:
             login_page.open()
 
         with allure.step(f"Attempt login with empty {field}"):
-            # TODO: Implement login with empty fields
-            pass
+            # Implement login with empty fields
+            login_page.login_user(email, password)
 
         with allure.step("Verify required field error is shown"):
-            # TODO: Implement validation error verification
-            pass
+            # Implement validation error verification
+            if email == "":
+                login_page.should_be_invalid_email_message()
+            if password == "":
+                login_page.should_be_invalid_password_message()
+
+        with allure.step("Verify user NOT logged in"):
+            login_page.should_be_login_page()
+            login_page.should_be_login_url()
 
     @allure.title("Security: SQL injection attempt in login")
     @allure.severity(allure.severity_level.CRITICAL)
@@ -151,8 +158,8 @@ class TestLoginFunctional:
             login_page.open()
 
         with allure.step("Attempt SQL injection in email field"):
-            # TODO: Use test_data.sql_injection
-            pass
+            # Use test_data.sql_injection
+            user_credentials = test_data.sql_injection
 
         with allure.step("Verify system rejects injection attempt safely"):
             # TODO: Implement security validation
