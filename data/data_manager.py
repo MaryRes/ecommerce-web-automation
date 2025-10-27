@@ -34,7 +34,7 @@ from pathlib import Path
 from typing import Dict, List, Any
 
 
-class TestData:
+class DataManager:
     """
     Centralized test data management for automation framework.
 
@@ -42,12 +42,12 @@ class TestData:
     generation capabilities for comprehensive test coverage.
 
     Attributes:
-        data_path (Path): Path to test_data.json configuration file
+        data_path (Path): Path to data_manager.json configuration file
         _data (Dict): Loaded test data from JSON configuration
     """
 
     def __init__(self):
-        self.data_path = Path(__file__).parent / "test_data.json"
+        self.data_path = Path(__file__).parent / "data_manager.json"
         self._data = self._load_data()
 
     def _load_data(self) -> Dict[str, Any]:
@@ -58,7 +58,7 @@ class TestData:
             Dict containing all test data categories and values
 
         Raises:
-            FileNotFoundError: If test_data.json doesn't exist
+            FileNotFoundError: If data_manager.json doesn't exist
             JSONDecodeError: If JSON file is malformed
         """
         with open(self.data_path, 'r', encoding='utf-8') as f:
@@ -139,6 +139,17 @@ class TestData:
         """Reload test data from JSON file (useful for runtime updates)."""
         self._data = self._load_data()
 
+    def _load_test_cases(self, filename: str) -> List[Dict]:
+        """Load test cases from JSON file"""
+        with open(self.data_path / filename, 'r', encoding='utf-8') as f:
+            return json.load(f)
+
+    @property
+    def login_validation_cases(self) -> List[Dict]:
+        """Get all login validation test cases"""
+        return self._data["login_validation_cases"]
+
 
 # Global singleton instance for easy access across the test framework
-test_data = TestData()
+data_manager = DataManager()
+#print(data_manager.valid_user) # Example usage

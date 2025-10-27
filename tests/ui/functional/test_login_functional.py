@@ -12,7 +12,8 @@ import time
 import pytest
 import allure
 from pages.login_page import LoginPage
-from data.test_data import test_data
+from data.data_manager import data_manager
+
 
 # python -m pytest tests/ui/functional/test_login_functional.py::TestLoginFunctional::test_login_with_valid_credentials -v
 # docker run --rm -v ${PWD}:/app qa-tests python -m pytest tests/ui/functional/test_login_functional.py -v
@@ -35,7 +36,7 @@ class TestLoginFunctional:
             login_page.open()
 
         with allure.step("Enter valid email and password"):
-            user_credentials = test_data.valid_user
+            user_credentials = data_manager.valid_user
             email = user_credentials["email"]
             password = user_credentials["password"]
             login_page.login_user(email, password)
@@ -43,11 +44,10 @@ class TestLoginFunctional:
         with allure.step("Verify user is successfully logged in"):
             login_page.should_be_successful_login()
 
-
     @allure.title("Login with invalid email format")
     @allure.severity(allure.severity_level.NORMAL)
     @allure.tag("negative", "validation")
-    @pytest.mark.parametrize("invalid_email", test_data.invalid_emails[:3])  # Test first 3 cases
+    @pytest.mark.parametrize("invalid_email", data_manager.invalid_emails[:3])  # Test first 3 cases
     def test_login_with_invalid_email_format(self, browser, login_url, invalid_email):
         """Verify system validates email format correctly."""
         login_page = LoginPage(browser, login_url)
@@ -104,7 +104,7 @@ class TestLoginFunctional:
 
         with allure.step("Attempt login with correct email but wrong password"):
             # Use valid email with wrong password
-            user_credentials = test_data.valid_user
+            user_credentials = data_manager.valid_user
             valid_email = user_credentials["email"]
             wrong_password = "Wrong" + user_credentials["password"]
             login_page.login_user(valid_email, wrong_password)
@@ -159,7 +159,7 @@ class TestLoginFunctional:
 
         with allure.step("Attempt SQL injection in email field"):
             # Use test_data.sql_injection
-            user_credentials = test_data.sql_injection
+            user_credentials = data_manager.sql_injection
 
         with allure.step("Verify system rejects injection attempt safely"):
             # TODO: Implement security validation
@@ -219,7 +219,7 @@ class TestRegistrationFunctional:
     @allure.title("Registration with weak password")
     @allure.severity(allure.severity_level.NORMAL)
     @allure.tag("negative", "validation")
-    @pytest.mark.parametrize("weak_password", test_data.weak_passwords[:2])  # Test first 2 cases
+    @pytest.mark.parametrize("weak_password", data_manager.weak_passwords[:2])  # Test first 2 cases
     def test_registration_with_weak_password(self, browser, login_url, weak_password):
         """Verify system enforces password strength requirements."""
         login_page = LoginPage(browser, login_url)

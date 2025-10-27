@@ -3,8 +3,6 @@
 import pytest
 import logging
 import allure
-
-from pages.locators import LoginPageLocators
 from pages.login_page import LoginPage
 
 logger = logging.getLogger(__name__)

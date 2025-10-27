@@ -12,6 +12,7 @@ from webdriver_manager.firefox import GeckoDriverManager
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.firefox.service import Service as FirefoxService
 import time
+from data.api_endpoints import API_ENDPOINTS
 
 # Import project settings
 from config import settings
@@ -29,6 +30,7 @@ logging.basicConfig(
     format=settings.LOG_FORMAT
 )
 logger = logging.getLogger(__name__)
+
 
 def pytest_addoption(parser):
     """Add command line options for test configuration"""
@@ -50,6 +52,7 @@ def pytest_addoption(parser):
         default=settings.DEFAULT_LANGUAGE,
         help='Browser language: en, ru, es, etc.'
     )
+
 
 @pytest.fixture(scope="function")
 def browser(request):
@@ -103,36 +106,76 @@ def browser(request):
     logger.info("Closing browser")
     driver.quit()
 
+
 # URL fixtures using our settings
 @pytest.fixture
 def base_url():
     return settings.BASE_URL
 
+
 @pytest.fixture
 def login_url():
     return settings.LOGIN_URL
+
 
 @pytest.fixture
 def catalog_url():
     return settings.CATALOG_URL
 
+
 @pytest.fixture
 def basket_url():
     return settings.BASKET_URL
+
 
 # Test data fixtures
 @pytest.fixture
 def valid_user():
     return settings.VALID_USER
 
+
 @pytest.fixture
 def invalid_user():
     return settings.INVALID_USER
 
+
+# API endpoints fixture
+@pytest.fixture
+def api_endpoints():
+    """Provide API endpoints to tests"""
+    return API_ENDPOINTS
+
+
+@pytest.fixture
+def login_api_url(api_endpoints):
+    """Specific endpoint for login API"""
+    return api_endpoints["login"]
+
+
+@pytest.fixture
+def basket_api_url(api_endpoints):
+    """Specific endpoint for basket API"""
+    return api_endpoints["basket"]
+
+
+@pytest.fixture
+def products_api_url(api_endpoints):
+    return api_endpoints["products"]
+
+
+@pytest.fixture
+def orders_api_url(api_endpoints):
+    return api_endpoints["orders"]
+
+
+@pytest.fixture
+def checkout_api_url(api_endpoints):
+    return api_endpoints["checkout"]
+
+
 # Timer fixture using settings
 @pytest.fixture(autouse=True)
 def test_timer(request):
-
     start_time = time.time()
     yield
     duration = time.time() - start_time

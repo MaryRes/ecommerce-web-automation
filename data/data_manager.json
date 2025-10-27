@@ -1,0 +1,96 @@
+{
+  "users": {
+    "valid_user": {
+      "email": "test_user_x@example.com",
+      "username": "test_user_x@example.com",
+      "password": "SecurePass123!",
+      "first_name": "First_name",
+      "last_name": "Last_name"
+    },
+    "admin_user": {
+      "email": "admin@example.com",
+      "password": "AdminPass123!"
+    }
+  },
+  "registration": {
+    "valid_emails": [
+      "test+{timestamp}@example.com",
+      "user{random}@test.org"
+    ],
+    "invalid_emails": [
+      "invalid-email",
+      "test@",
+      "@example.com",
+      "test@.com",
+      "test@example..com"
+    ],
+    "weak_passwords": [
+      "123",
+      "password",
+      "12345678",
+      "abcdefgh"
+    ],
+    "strong_passwords": [
+      "SecurePass123!",
+      "My@Password2024",
+      "Test_123_Strong"
+    ]
+  },
+  "security": {
+    "sql_injection": "' OR '1'='1",
+    "xss_attempt": "<script>alert('xss')</script>",
+    "path_traversal": "../../etc/passwd"
+  },
+
+  "login_validation_cases": [
+    {
+      "name": "empty_email",
+      "username": "",
+      "password": "SecurePass123!",
+      "expected_error": "blank_email",
+      "description": "Login with empty email should return 401"
+    },
+    {
+      "name": "invalid_email_no_at",
+      "username": "invalidemail.com",
+      "password": "SecurePass123!",
+      "expected_error": "invalid_email",
+      "description": "Email without @ symbol should be rejected"
+    },
+    {
+      "name": "invalid_email_no_domain",
+      "username": "test@",
+      "password": "SecurePass123!",
+      "expected_error": "invalid_email",
+      "description": "Email without domain should be rejected"
+    },
+    {
+      "name": "empty_password",
+      "username": "test_user_x@example.com",
+      "password": "",
+      "expected_error": "blank_password",
+      "description": "Empty password should be rejected"
+    },
+    {
+      "name": "weak_password_short",
+      "username": "test_user_x@example.com",
+      "password": "123",
+      "expected_error": "weak_password",
+      "description": "Password too short should be rejected"
+    },
+    {
+      "name": "nonexistent_user",
+      "username": "nonexistent_user@example.com",
+      "password": "SecurePass123!",
+      "expected_error": "invalid_credentials",
+      "description": "Non-existent user should be rejected"
+    },
+    {
+      "name": "wrong_password",
+      "username": "test_user_x@example.com",
+      "password": "WrongPassword123!",
+      "expected_error": "invalid_credentials",
+      "description": "Wrong password should be rejected"
+    }
+  ]
+}
