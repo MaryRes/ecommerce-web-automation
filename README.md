@@ -1,6 +1,7 @@
 # Ecommerce Web Automation
 
-[![Tests](https://github.com/MaryRes/ecommerce-web-automation/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/MaryRes/ecommerce-web-automation/actions)
+[![CI](https://github.com/MaryRes/ecommerce-web-automation/actions/workflows/full-pipeline.yml/badge.svg)](https://github.com/MaryRes/ecommerce-web-automation/actions)
+[![Docker](https://img.shields.io/badge/Docker-Automated-blue?logo=docker)]()
 [![Python](https://img.shields.io/badge/Python-3.12.3-blue)]()
 [![Pytest](https://img.shields.io/badge/pytest-8.4.1-green)]()
 [![Selenium](https://img.shields.io/badge/selenium-4.34.2-orange)]()
