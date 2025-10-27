@@ -71,8 +71,8 @@ ecommerce-web-automation/          # Root project directory
 │
 ├── data/                          # Test data
 │   ├── __init__.py
-│   ├── test_data.py               # Data as variables/dictionaries
-│   └── test_data.json             # Data in JSON format
+│   ├── data_manager.py               # Data as variables/dictionaries
+│   └── data_manager.json             # Data in JSON format
 │
 ├── pages/                         # Page Object Model
 │   ├── __init__.py

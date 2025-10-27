@@ -32,7 +32,7 @@ INVALID_USER = {
     "password": "wrongpassword"
 }
 
-# New user for registration tests
+# New user for registration test
 NEW_USER = {
     "email": "newuser420958@example.com",
     "password": "newpassword123",
@@ -89,7 +89,7 @@ ALLURE_RESULTS_DIR = "allure-results"
 
 
 # Test data paths
-TEST_DATA_PATH = "data/test_data.json"
+TEST_DATA_PATH = "data/data_manager.json"
 
 # ==================== TEST CONFIGURATION ====================
 # Slow test threshold in seconds

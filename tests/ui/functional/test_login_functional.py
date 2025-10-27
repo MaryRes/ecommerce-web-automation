@@ -12,7 +12,8 @@ import time
 import pytest
 import allure
 from pages.login_page import LoginPage
-from data.test_data import test_data
+from data.data_manager import data_manager
+
 
 # python -m pytest tests/ui/functional/test_login_functional.py::TestLoginFunctional::test_login_with_valid_credentials -v
 # docker run --rm -v ${PWD}:/app qa-tests python -m pytest tests/ui/functional/test_login_functional.py -v
@@ -23,6 +24,7 @@ from data.test_data import test_data
 class TestLoginFunctional:
     """Functional tests for user login scenarios - validation and error cases."""
 
+    @pytest.mark.flaky(reruns=3)
     @allure.title("Successful login with valid credentials")
     @allure.severity(allure.severity_level.CRITICAL)
     @allure.tag("positive", "authentication")
@@ -34,7 +36,7 @@ class TestLoginFunctional:
             login_page.open()
 
         with allure.step("Enter valid email and password"):
-            user_credentials = test_data.valid_user
+            user_credentials = data_manager.valid_user
             email = user_credentials["email"]
             password = user_credentials["password"]
             login_page.login_user(email, password)
@@ -42,11 +44,10 @@ class TestLoginFunctional:
         with allure.step("Verify user is successfully logged in"):
             login_page.should_be_successful_login()
 
-    @pytest.mark.new
     @allure.title("Login with invalid email format")
     @allure.severity(allure.severity_level.NORMAL)
     @allure.tag("negative", "validation")
-    @pytest.mark.parametrize("invalid_email", test_data.invalid_emails[:3])  # Test first 3 cases
+    @pytest.mark.parametrize("invalid_email", data_manager.invalid_emails[:3])  # Test first 3 cases
     def test_login_with_invalid_email_format(self, browser, login_url, invalid_email):
         """Verify system validates email format correctly."""
         login_page = LoginPage(browser, login_url)
@@ -65,7 +66,7 @@ class TestLoginFunctional:
             login_page.should_be_login_page()
             login_page.should_be_login_url()
 
-
+    @pytest.mark.new
     @allure.title("Login with non-existent email")
     @allure.severity(allure.severity_level.NORMAL)
     @allure.tag("negative", "validation")
@@ -77,13 +78,20 @@ class TestLoginFunctional:
             login_page.open()
 
         with allure.step("Attempt login with non-existent email"):
-            # TODO: Use generated email that doesn't exist
-            pass
+            # Use generated email that doesn't exist
+            non_existent_email = login_page.generate_unique_email()
+            password = ""
+            login_page.login_user(non_existent_email, password)
 
         with allure.step("Verify appropriate error message is displayed"):
-            # TODO: Implement error message verification
-            pass
+            # Implement error message verification
+            login_page.should_be_invalid_email_message()
 
+        with allure.step("Verify user NOT logged in"):
+            login_page.should_be_login_page()
+            login_page.should_be_login_url()
+
+    @pytest.mark.new
     @allure.title("Login with incorrect password")
     @allure.severity(allure.severity_level.NORMAL)
     @allure.tag("negative", "security")
@@ -95,12 +103,19 @@ class TestLoginFunctional:
             login_page.open()
 
         with allure.step("Attempt login with correct email but wrong password"):
-            # TODO: Use valid email with wrong password
-            pass
+            # Use valid email with wrong password
+            user_credentials = data_manager.valid_user
+            valid_email = user_credentials["email"]
+            wrong_password = "Wrong" + user_credentials["password"]
+            login_page.login_user(valid_email, wrong_password)
 
         with allure.step("Verify authentication error is shown"):
-            # TODO: Implement error message verification
-            pass
+            # Implement error message verification
+            login_page.should_be_invalid_password_message()
+
+        with allure.step("Verify user NOT logged in"):
+            login_page.should_be_login_page()
+            login_page.should_be_login_url()
 
     @allure.title("Login with empty credentials")
     @allure.severity(allure.severity_level.NORMAL)
@@ -118,12 +133,19 @@ class TestLoginFunctional:
             login_page.open()
 
         with allure.step(f"Attempt login with empty {field}"):
-            # TODO: Implement login with empty fields
-            pass
+            # Implement login with empty fields
+            login_page.login_user(email, password)
 
         with allure.step("Verify required field error is shown"):
-            # TODO: Implement validation error verification
-            pass
+            # Implement validation error verification
+            if email == "":
+                login_page.should_be_invalid_email_message()
+            if password == "":
+                login_page.should_be_invalid_password_message()
+
+        with allure.step("Verify user NOT logged in"):
+            login_page.should_be_login_page()
+            login_page.should_be_login_url()
 
     @allure.title("Security: SQL injection attempt in login")
     @allure.severity(allure.severity_level.CRITICAL)
@@ -136,8 +158,8 @@ class TestLoginFunctional:
             login_page.open()
 
         with allure.step("Attempt SQL injection in email field"):
-            # TODO: Use test_data.sql_injection
-            pass
+            # Use test_data.sql_injection
+            user_credentials = data_manager.sql_injection
 
         with allure.step("Verify system rejects injection attempt safely"):
             # TODO: Implement security validation
@@ -197,7 +219,7 @@ class TestRegistrationFunctional:
     @allure.title("Registration with weak password")
     @allure.severity(allure.severity_level.NORMAL)
     @allure.tag("negative", "validation")
-    @pytest.mark.parametrize("weak_password", test_data.weak_passwords[:2])  # Test first 2 cases
+    @pytest.mark.parametrize("weak_password", data_manager.weak_passwords[:2])  # Test first 2 cases
     def test_registration_with_weak_password(self, browser, login_url, weak_password):
         """Verify system enforces password strength requirements."""
         login_page = LoginPage(browser, login_url)

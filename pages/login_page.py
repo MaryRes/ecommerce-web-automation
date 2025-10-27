@@ -160,6 +160,13 @@ class LoginPage(BasePage):
             "Invalid email message not displayed"
         logger.info("Invalid email message is displayed")
 
+    @allure.step("Verify invalid password message is displayed")
+    def should_be_invalid_password_message(self) -> None:
+        """Verify that invalid password message is displayed."""
+        assert self.is_element_present(LoginPageLocators.LOGIN_INCORRECT_MESSAGE), \
+            "Invalid password message not displayed"
+        logger.info("Invalid password message is displayed")
+
     @allure.step("Register new user")
     def register_new_user(self, email: str, password: str) -> None:
         """Register a new user - only performs the action."""
@@ -200,7 +207,8 @@ class LoginPage(BasePage):
         assert success, "Failed to navigate to login page"
         logger.info("Navigated to login page")
 
+    @staticmethod
     @allure.step("Generate unique email for testing")
-    def _generate_unique_email(self) -> str:
+    def generate_unique_email() -> str:
         """Generate unique email for testing."""
         return f"test_{time.time()}@example.com"
