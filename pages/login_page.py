@@ -167,16 +167,34 @@ class LoginPage(BasePage):
             "Invalid password message not displayed"
         logger.info("Invalid password message is displayed")
 
+    # ==== REGISTRATION VERIFICATIONS =====
+    @allure.step("Verify problem with password message is displayed")
+    def should_be_password_problem_message(self) -> None:
+        """Verify that problem with password message is displayed."""
+        assert self.is_element_present(LoginPageLocators.WEAK_PASSWORD_INDICATOR), \
+            "Problem with password message not displayed"
+        logger.info("Problem with password message is displayed")
+
+    @allure.step("Verify registration error message is displayed")
+    def should_be_registration_error_message(self) -> None:
+        """Verify that registration error message is displayed."""
+        assert self.is_element_present(LoginPageLocators.REGISTER_INCORRECT_MESSAGE), \
+            "Registration error message not displayed"
+        logger.info("Registration error message is displayed")
+
     @allure.step("Register new user")
-    def register_new_user(self, email: str, password: str) -> None:
+    def register_new_user(self, email: str, password_1: str, password_2=None) -> None:
         """Register a new user - only performs the action."""
+
+        if password_2 is None:
+            password_2 = password_1
         # Fill the registration form
         with allure.step("Fill registration form"):
             self.send_keys(LoginPageLocators.REGISTER_EMAIL_FIELD, email)
         with allure.step("Fill first password field"):
-            self.send_keys(LoginPageLocators.REGISTER_PASSWORD_FIELD, password)
+            self.send_keys(LoginPageLocators.REGISTER_PASSWORD_FIELD, password_1)
         with allure.step("Fill confirm password field"):
-            self.send_keys(LoginPageLocators.REGISTER_CONFIRM_PASSWORD_FIELD, password)
+            self.send_keys(LoginPageLocators.REGISTER_CONFIRM_PASSWORD_FIELD, password_2)
 
         # Submit registration
         with allure.step("Submit registration form"):

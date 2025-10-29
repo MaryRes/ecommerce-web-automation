@@ -7,6 +7,7 @@ Tests cover:
 - Security testing (injection attacks)
 - Registration flows (new user sign-up)
 """
+import logging
 import time
 
 import pytest
@@ -201,20 +202,17 @@ class TestRegistrationFunctional:
             login_page.open()
 
         with allure.step("Generate unique email for registration"):
-            # TODO: Use test_data.generate_unique_email()
-            pass
+            email = data_manager.generate_unique_email()
 
-        with allure.step("Fill registration form with valid data"):
-            # TODO: Use test_data.strong_passwords
-            pass
+        with allure.step("Generate strong password for registration"):
+            password = data_manager.strong_passwords[0]  # Use first strong password
 
-        with allure.step("Submit registration form"):
-            # TODO: Implement registration submission
-            pass
+        with allure.step("Fill and submit registration form with valid data"):
+            login_page.register_new_user(email, password)
 
         with allure.step("Verify registration success"):
-            # TODO: Implement registration success verification
-            pass
+            # Implement registration success verification
+            login_page.should_be_successful_registration()
 
     @allure.title("Registration with weak password")
     @allure.severity(allure.severity_level.NORMAL)
@@ -223,35 +221,122 @@ class TestRegistrationFunctional:
     def test_registration_with_weak_password(self, browser, login_url, weak_password):
         """Verify system enforces password strength requirements."""
         login_page = LoginPage(browser, login_url)
+        logging.info("Testing registration with weak password...")
 
         with allure.step("Open registration page"):
             login_page.open()
+            logging.info("Opened registration page for weak password test")
 
         with allure.step("Attempt registration with weak password"):
-            # TODO: Implement weak password registration attempt
-            pass
+            email = data_manager.generate_unique_email()
+            weak_password = data_manager.weak_passwords[0]
+
+            login_page.register_new_user(email, weak_password)
+            logging.info(f"Attempted registration with weak password: {weak_password}")
 
         with allure.step("Verify password strength error is shown"):
-            # TODO: Implement password strength validation
-            pass
+            login_page.should_be_password_problem_message()
+            logging.info("✓ Weak password error message displayed")
 
-    @allure.title("Registration with password mismatch")
-    @allure.severity(allure.severity_level.NORMAL)
-    @allure.tag("negative", "validation")
-    def test_registration_with_password_mismatch(self, browser, login_url):
+        with allure.step("Verify registration error message is shown"):
+            login_page.should_be_registration_error_message()
+            logging.info("✓ Registration error message displayed")
+
+        with allure.step("Verify user NOT registered"):
+            login_page.should_be_login_page()
+            login_page.should_be_login_url()
+            logging.info("✓ User not registered with weak password")
+
+    @allure.title("Password mismatch validation - {scenario}")
+    @allure.severity(allure.severity_level.CRITICAL)
+    @allure.tag("validation", "negative")
+    @pytest.mark.parametrize("password_1, password_2, scenario", [
+        # Different types of mismatches to cover edge cases
+        ("StrongPass123", "DifferentPass123", "completely_different"),
+        ("StrongPass123", "StrongPass123X", "suffix_difference"),
+        ("StrongPass123", "XStrongPass123", "prefix_difference"),
+        ("StrongPass123", "StrongPass124", "last_char_different")
+    ])
+    def test_registration_with_password_mismatch(self, browser, login_url, password_1, password_2, scenario):
         """Verify system validates password confirmation."""
-        login_page = LoginPage(browser, login_url)
+
+        with allure.step(f"Setup login page for password mismatch test scenario: {scenario}"):
+            login_page = LoginPage(browser, login_url)
+            logging.info("Testing registration with password mismatch...")
 
         with allure.step("Open registration page"):
             login_page.open()
+            logging.info("Opened registration page for password mismatch test")
 
         with allure.step("Attempt registration with mismatched passwords"):
-            # TODO: Implement password mismatch scenario
-            pass
+
+            email = data_manager.generate_unique_email()
+            password_1 = data_manager.strong_passwords[0]
+            password_2 = "X" + password_1  # Different password
+            logging.info(f"Attempting registration with passwords: '{password_1}' and '{password_2}'")
+
+            login_page.register_new_user(email, password_1, password_2)
+            logging.info("Submitted registration form with mismatched passwords")
 
         with allure.step("Verify password mismatch error is shown"):
-            # TODO: Implement password confirmation validation
-            pass
+            # Implement password confirmation validation
+            login_page.should_be_password_problem_message()
+            logging.info("✓ Password mismatch error message displayed")
+
+        with allure.step("Verify password confirmation error is shown"):
+            login_page.should_be_registration_error_message()
+            logging.info("✓ Password confirmation error message displayed")
+
+        with allure.step("Verify user NOT registered"):
+            login_page.should_be_login_page()
+            login_page.should_be_login_url()
+            logging.info("✓ User not registered due to password mismatch")
+
+    @allure.title("Password space trimming bug - {password_1} vs '{password_2}'")
+    @allure.severity(allure.severity_level.NORMAL)
+    @allure.tag("bug", "validation")
+    @pytest.mark.xfail(reason="KNOWN BUG: Password spaces are trimmed, making different passwords appear identical")
+    @pytest.mark.parametrize("password_1, password_2", [
+        ("StrongPass123", " StrongPass123"),  # space in beginning
+        ("StrongPass123", "StrongPass123 "),  # space at end
+        ("StrongPass123", " StrongPass123 "),  # spaces at both ends
+    ])
+    def test_password_space_trimming(self, browser, login_url, password_1, password_2):
+        """Verify system treats passwords with leading/trailing spaces as different.
+
+        This test is expected to fail due to a known bug where spaces are trimmed.
+        """
+
+        with allure.step(f"Setup login page for password space trimming test with '{password_1}' vs '{password_2}'"):
+            login_page = LoginPage(browser, login_url)
+            logging.info("Testing registration with password space trimming...")
+
+        with allure.step("Open registration page"):
+            login_page.open()
+            logging.info("Opened registration page for password space trimming test")
+
+        with allure.step("Attempt registration with passwords differing by spaces"):
+
+            email = data_manager.generate_unique_email()
+            logging.info(f"Attempting registration with passwords: '{password_1}' and '{password_2}'")
+
+            login_page.register_new_user(email, password_1, password_2)
+            logging.info("Submitted registration form with space-different passwords")
+
+        with allure.step("Verify password mismatch error is shown"):
+            # Implement password confirmation validation
+            login_page.should_be_password_problem_message()
+            logging.info("✓ Password mismatch error message displayed")
+
+        with allure.step("Verify password confirmation error is shown"):
+            login_page.should_be_registration_error_message()
+            logging.info("✓ Password confirmation error message displayed")
+
+        with allure.step("Verify user NOT registered"):
+            login_page.should_be_login_page()
+            login_page.should_be_login_url()
+            logging.info("✓ User not registered due to password space trimming issue")
+
 
     @allure.title("Registration with existing email")
     @allure.severity(allure.severity_level.NORMAL)

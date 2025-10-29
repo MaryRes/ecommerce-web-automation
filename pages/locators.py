@@ -41,6 +41,11 @@ class LoginPageLocators:
     REGISTER_CONFIRM_PASSWORD_FIELD = (By.CSS_SELECTOR, 'input[name="registration-password2"]')
     REGISTER_SUBMIT_BUTTON = (By.CSS_SELECTOR, 'button[name="registration_submit"]')
 
+    # message after incorrect registration
+    REGISTER_INCORRECT_MESSAGE = (By.CSS_SELECTOR, '.alert-danger')
+    # Password strength indicator
+    WEAK_PASSWORD_INDICATOR = (By.XPATH, "//div[input[@id='id_registration-password2']]//span[@class='error-block']")
+
     # Additional links
     FORGOT_PASSWORD_LINK = (By.CSS_SELECTOR, 'a[href*="password-reset"]')
 
