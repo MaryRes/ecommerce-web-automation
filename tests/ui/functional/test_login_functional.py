@@ -64,8 +64,8 @@ class TestLoginFunctional:
             login_page.should_be_invalid_email_message()
 
         with allure.step("Verify user NOT logged in"):
+            login_page.should_not_be_logged_in()
             login_page.should_be_login_page()
-            login_page.should_be_login_url()
 
     @pytest.mark.new
     @allure.title("Login with non-existent email")
@@ -89,8 +89,8 @@ class TestLoginFunctional:
             login_page.should_be_invalid_email_message()
 
         with allure.step("Verify user NOT logged in"):
+            login_page.should_not_be_logged_in()
             login_page.should_be_login_page()
-            login_page.should_be_login_url()
 
     @pytest.mark.new
     @allure.title("Login with incorrect password")
@@ -115,8 +115,8 @@ class TestLoginFunctional:
             login_page.should_be_invalid_password_message()
 
         with allure.step("Verify user NOT logged in"):
+            login_page.should_not_be_logged_in()
             login_page.should_be_login_page()
-            login_page.should_be_login_url()
 
     @allure.title("Login with empty credentials")
     @allure.severity(allure.severity_level.NORMAL)
@@ -145,26 +145,65 @@ class TestLoginFunctional:
                 login_page.should_be_invalid_password_message()
 
         with allure.step("Verify user NOT logged in"):
+            login_page.should_not_be_logged_in()
             login_page.should_be_login_page()
-            login_page.should_be_login_url()
 
-    @allure.title("Security: SQL injection attempt in login")
+
+    @pytest.mark.parametrize("sql_payload", [
+        "' OR '1'='1",
+        "' OR 1=1--",
+        "admin'--",
+        "' UNION SELECT 1,2,3--",
+        "'; DROP TABLE users--",
+        "' OR 'a'='a",
+        "1'1",
+        "\\' OR \\'1\\'=\\'1",
+        "test@test.com' OR '1'='1",
+        "something' OR email IS NOT NULL AND '1'='1"
+    ], ids=[
+        "basic_or_condition",
+        "comment_bypass",
+        "admin_access_attempt",
+        "union_data_extraction",
+        "destructive_drop_table",
+        "always_true_condition",
+        "quote_manipulation",
+        "escaped_quotes",
+        "email_with_injection",
+        "complex_condition"
+    ])
+    @allure.title("Security: SQL injection attempt with payload: {sql_payload}")
     @allure.severity(allure.severity_level.CRITICAL)
     @allure.tag("security", "negative")
-    def test_login_with_sql_injection_attempt(self, browser, login_url):
+    def test_login_with_sql_injection_attempt(self, browser, login_url, sql_payload):
         """Verify system is protected against SQL injection."""
         login_page = LoginPage(browser, login_url)
+        user_credentials = data_manager.valid_user
+        email = user_credentials["email"]
+        password = user_credentials["password"]
 
         with allure.step("Open login page"):
             login_page.open()
 
         with allure.step("Attempt SQL injection in email field"):
-            # Use test_data.sql_injection
-            user_credentials = data_manager.sql_injection
+            login_page.login_user(sql_payload, password)
 
         with allure.step("Verify system rejects injection attempt safely"):
-            # TODO: Implement security validation
-            pass
+            login_page.should_be_invalid_email_message()
+
+        with allure.step("Verify user NOT logged in"):
+            login_page.should_not_be_logged_in()
+
+        with allure.step("Verify user is on login page"):
+            login_page.should_be_login_page()
+
+        with allure.step("Verify login form still functional"):
+            login_page.login_user(email, password)
+            login_page.should_be_logged_in()
+
+        with allure.step("Cleanup: logout for next test case"):
+            login_page.logout_user()
+
 
     @allure.title("Login with very long password")
     @allure.severity(allure.severity_level.MINOR)
@@ -243,8 +282,8 @@ class TestRegistrationFunctional:
             logging.info("✓ Registration error message displayed")
 
         with allure.step("Verify user NOT registered"):
+            login_page.should_not_be_logged_in()
             login_page.should_be_login_page()
-            login_page.should_be_login_url()
             logging.info("✓ User not registered with weak password")
 
     @allure.title("Password mismatch validation - {scenario}")
@@ -269,7 +308,6 @@ class TestRegistrationFunctional:
             logging.info("Opened registration page for password mismatch test")
 
         with allure.step("Attempt registration with mismatched passwords"):
-
             email = data_manager.generate_unique_email()
             password_1 = data_manager.strong_passwords[0]
             password_2 = "X" + password_1  # Different password
@@ -288,8 +326,8 @@ class TestRegistrationFunctional:
             logging.info("✓ Password confirmation error message displayed")
 
         with allure.step("Verify user NOT registered"):
+            login_page.should_not_be_logged_in()
             login_page.should_be_login_page()
-            login_page.should_be_login_url()
             logging.info("✓ User not registered due to password mismatch")
 
     @allure.title("Password space trimming bug - {password_1} vs '{password_2}'")
@@ -316,7 +354,6 @@ class TestRegistrationFunctional:
             logging.info("Opened registration page for password space trimming test")
 
         with allure.step("Attempt registration with passwords differing by spaces"):
-
             email = data_manager.generate_unique_email()
             logging.info(f"Attempting registration with passwords: '{password_1}' and '{password_2}'")
 
@@ -333,10 +370,9 @@ class TestRegistrationFunctional:
             logging.info("✓ Password confirmation error message displayed")
 
         with allure.step("Verify user NOT registered"):
+            login_page.should_not_be_logged_in()
             login_page.should_be_login_page()
-            login_page.should_be_login_url()
             logging.info("✓ User not registered due to password space trimming issue")
-
 
     @allure.title("Registration with existing email")
     @allure.severity(allure.severity_level.NORMAL)

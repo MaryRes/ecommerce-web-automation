@@ -12,10 +12,6 @@ from .locators import LoginPageLocators, BasePageLocators
 logger = logging.getLogger(__name__)
 
 
-# TODO: добавить allure шаги
-# TODO: docker
-# TODO: параллельный запуск тестов
-
 class LoginPage(BasePage):
     """Page Object for login/registration page."""
 

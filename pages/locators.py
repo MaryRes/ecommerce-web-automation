@@ -3,11 +3,15 @@ from selenium.webdriver.common.by import By
 
 class BasePageLocators:
     """Locators common for all pages"""
+    HOME_PAGE_LINK = (By.XPATH, "//a[text()='Oscar']")
     LOGIN_LINK = (By.CSS_SELECTOR, "#login_link")
     LOGIN_LINK_INVALID = (By.CSS_SELECTOR, "#login_link_inc")
     USER_ICON = (By.CSS_SELECTOR, "i.icon-user")
     SUCCESS_ALERT = (By.CSS_SELECTOR, ".alert-success")
     ERROR_ALERT = (By.CSS_SELECTOR, ".alert-danger")
+    LOGOUT_LINK = (By.CSS_SELECTOR, '#logout_link')
+    HEADER = (By.CSS_SELECTOR, '.header')
+    BODY = (By.CSS_SELECTOR, 'body')
 
 
 class BasketPageLocators:
