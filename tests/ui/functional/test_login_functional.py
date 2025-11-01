@@ -148,7 +148,6 @@ class TestLoginFunctional:
             login_page.should_not_be_logged_in()
             login_page.should_be_login_page()
 
-
     @pytest.mark.parametrize("sql_payload", [
         "' OR '1'='1",
         "' OR 1=1--",
@@ -204,7 +203,6 @@ class TestLoginFunctional:
         with allure.step("Cleanup: logout for next test case"):
             login_page.logout_user()
 
-
     @allure.title("Login with very long password")
     @allure.severity(allure.severity_level.MINOR)
     @allure.tag("negative", "validation")
@@ -216,12 +214,16 @@ class TestLoginFunctional:
             login_page.open()
 
         with allure.step("Attempt login with very long password"):
-            # TODO: Use test_data.weak_passwords for long password
-            pass
+            email = data_manager.valid_user["email"]
+            long_password = "A" * 1000  # Example of a very long password
+            login_page.login_user(email, long_password)
 
         with allure.step("Verify system handles long input appropriately"):
-            # TODO: Implement input length validation
-            pass
+            login_page.should_be_invalid_password_message()
+
+        with allure.step("Verify user NOT logged in"):
+            login_page.should_not_be_logged_in()
+            login_page.should_be_login_page()
 
 
 @pytest.mark.functional
@@ -386,16 +388,21 @@ class TestRegistrationFunctional:
 
         with allure.step("Attempt registration with existing email"):
             # TODO: Use test_data.valid_user email
-            pass
+            email = data_manager.valid_user["email"]
+            password = data_manager.strong_passwords[0]
+            login_page.register_new_user(email, password)
 
         with allure.step("Verify duplicate email error is shown"):
-            # TODO: Implement duplicate email validation
-            pass
+            login_page.should_be_registration_error_message()
 
-    @allure.title("Security: XSS attempt in registration")
+        with allure.step("Verify user NOT registered"):
+            login_page.should_not_be_logged_in()
+            login_page.should_be_login_page()
+
+    @allure.title("Security: XSS attempt in registration (email field)")
     @allure.severity(allure.severity_level.CRITICAL)
     @allure.tag("security", "negative")
-    def test_registration_with_xss_attempt(self, browser, login_url):
+    def test_registration_with_xss_attempt_email(self, browser, login_url):
         """Verify system is protected against XSS attacks."""
         login_page = LoginPage(browser, login_url)
 
@@ -403,9 +410,31 @@ class TestRegistrationFunctional:
             login_page.open()
 
         with allure.step("Attempt XSS injection in registration fields"):
-            # TODO: Use test_data.xss_attempt
-            pass
+            xss_payload = data_manager.xss_attempt
+            login_page.register_new_user(xss_payload, xss_payload)
 
         with allure.step("Verify system sanitizes input safely"):
-            # TODO: Implement XSS protection validation
-            pass
+            login_page.should_be_invalid_email_message()
+
+        with allure.step("Verify user NOT registered"):
+            login_page.should_not_be_logged_in()
+            login_page.should_be_login_page()
+
+
+    @allure.title("Security: XSS attempt in registration (password field)")
+    @allure.severity(allure.severity_level.CRITICAL)
+    @allure.tag("security", "negative")
+    def test_registration_with_xss_attempt_password(self, browser, login_url):
+        """Verify system is protected against XSS attacks."""
+        login_page = LoginPage(browser, login_url)
+
+        with allure.step("Open registration page"):
+            login_page.open()
+
+        with allure.step("Attempt XSS injection in registration fields"):
+            xss_payload = data_manager.xss_attempt
+            email = data_manager.generate_unique_email()
+            login_page.register_new_user(email, xss_payload)
+
+        with allure.step("Verify system sanitizes input safely"):
+            login_page.should_be_successful_registration()
