@@ -7,11 +7,6 @@ from pages.login_page import LoginPage
 
 logger = logging.getLogger(__name__)
 
-# TODO: добавить allure шаги
-# TODO: docker
-# TODO: параллельный запуск тестов
-
-
 # pytest tests/test_login_smoke.py -v
 # pytest -v -s --log-cli-level=INFO --tb=short tests/ui/smoke/test_login_smoke.py
 # pytest --alluredir=allure-results
