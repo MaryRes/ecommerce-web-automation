@@ -1,11 +1,5 @@
 """Module description"""
 
-import pytest
-from pages.product_page import ProductPage
-from pages.base_page import BasePage
-from config.settings import PRODUCT_URLS
-
-
 
 import pytest
 #from pages.main_page import MainPage
