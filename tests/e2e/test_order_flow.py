@@ -8,14 +8,15 @@ from config.settings import PRODUCT_URLS
 
 
 import pytest
-from pages.main_page import MainPage
-from pages.catalog_page import CatalogPage
+#from pages.main_page import MainPage
+#from pages.catalog_page import CatalogPage
 from pages.product_page import ProductPage
 from pages.basket_page import BasketPage
-from pages.checkout_page import CheckoutPage
-from utils.api_client import ApiClient
+#from pages.checkout_page import CheckoutPage
+#from utils.api_client import ApiClient
 
 
+@pytest.mark.skip(reason="🚧 E2E TESTS UNDER DEVELOPMENT - Page Objects not implemented")
 @pytest.mark.e2e
 class TestE2EOrderFlow:
     """
@@ -25,6 +26,7 @@ class TestE2EOrderFlow:
     - Order fails when product is out of stock
     """
 
+    @pytest.mark.skip(reason="Page Objects not implemented yet - E2E development in progress")
     @pytest.mark.critical
     def test_guest_order_flow(self, browser):
         """
@@ -53,7 +55,7 @@ class TestE2EOrderFlow:
         basket_page.proceed_to_checkout()  # TODO: click "Proceed to checkout"
         checkout_page.should_display_confirmation()  # TODO: verify confirmation page is shown
 
-
+    @pytest.mark.skip(reason="Page Objects not implemented yet - E2E development in progress")
     @pytest.mark.critical
     def test_logged_in_checkout_with_saved_address(self, browser, user):
         """
@@ -82,6 +84,7 @@ class TestE2EOrderFlow:
         checkout_page.should_display_confirmation()  # TODO: verify confirmation page
 
 
+    @pytest.mark.skip(reason="Page Objects not implemented yet - E2E development in progress")
     @pytest.mark.negative
     def test_out_of_stock_prevents_order(self, browser):
         """
