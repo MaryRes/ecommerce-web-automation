@@ -31,6 +31,8 @@ class TestLoginFunctional:
     @allure.tag("positive", "authentication")
     def test_login_with_valid_credentials(self, browser, login_url):
         """Verify successful login with correct credentials."""
+
+        # TODO: make_new_user with valid user_credentials creation before every test to avoid error 500!!!
         login_page = LoginPage(browser, login_url)
 
         with allure.step("Open login page"):
