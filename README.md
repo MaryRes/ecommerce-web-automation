@@ -46,11 +46,20 @@ pip install -r requirements.txt
 # Run all tests
 pytest tests/ --alluredir=allure-results
 
+# Run tests in parallel (FASTER - NEW!)
+pytest -n auto tests/ --alluredir=allure-results
+pytest -n 4 tests/ --alluredir=allure-results
+
 # Run specific test category
 pytest tests/ui/ -v
 pytest tests/e2e/ -v
+
 # Run with detailed logging
 pytest tests/ -v -s --log-cli-level=INFO --tb=short
+
+# Docker execution (REBUILD REQUIRED)
+docker-compose down
+docker-compose up --build
 
 ```
 
