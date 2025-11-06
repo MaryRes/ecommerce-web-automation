@@ -1,4 +1,5 @@
 """Module description"""
+# TODO screenshots on failure!!!
 
 
 import pytest
@@ -47,7 +48,8 @@ class TestE2EOrderFlow:
         main_page.open()
         main_page.go_to_catalog()
         catalog_page.select_product(test_product_name)
-        product_page.add_to_basket()  # TODO: click Add to basket
+        product_page.add_to_basket()  # click Add to basket
+        product_page.go_to_basket()  # TODO: navigate to basket
         basket_page.should_contain_product("Test Product")  # TODO: verify product is in basket
         basket_page.should_match_price("Test Product")  # TODO: verify correct price
         basket_page.proceed_to_checkout()  # TODO: click "Proceed to checkout"
