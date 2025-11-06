@@ -25,8 +25,8 @@ class TestE2EOrderFlow:
 
     @pytest.mark.skip(reason="Page Objects not implemented yet - E2E development in progress")
     @pytest.mark.critical
-    @pytest.mark.parametrize("test_product_name", [["The shellcoder's handbook", "Coders at Work"]])
-    def test_guest_order_flow(self, browser, main_page_url):
+    @pytest.mark.parametrize("test_product_name", ["The shellcoder's handbook", "Coders at Work"])
+    def test_guest_order_flow(self, browser, main_page_url, test_product_name):
         """
         E2E: Guest user can add a product to basket and complete checkout.
         Steps:

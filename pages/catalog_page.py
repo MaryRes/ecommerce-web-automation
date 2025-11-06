@@ -57,17 +57,17 @@ class CatalogPage(BasePage):
         )
         logger.debug("Product list presence verified")
 
-    def select_product(self, product_name: str, timeout=10):
+    def select_product(self, product_name: str):
         """Click product link to open product details page"""
 
         product_link_locator = self._get_product_link_locator_by_name(product_name)
         logger.debug("Selecting product '%s'", product_name)
 
         current_url_before = self.get_current_url()
-        product_link = self.wait_for_clickable(product_link_locator, timeout)
+        product_link = self.wait_for_clickable(product_link_locator)
         product_link.click()
 
-        if self._wait_for_url_change(current_url_before, timeout):
+        if self._wait_for_url_change(current_url_before):
             logger.info("Successfully navigated to product page for '%s'", product_name)
         else:
             raise TimeoutException(f"Product page navigation timeout for '{product_name}'")
