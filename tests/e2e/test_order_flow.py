@@ -2,12 +2,15 @@
 
 
 import pytest
-#from pages.main_page import MainPage
-#from pages.catalog_page import CatalogPage
+
+from conftest import catalog_url
+from pages.main_page import MainPage
+from pages.catalog_page import CatalogPage
 from pages.product_page import ProductPage
 from pages.basket_page import BasketPage
-#from pages.checkout_page import CheckoutPage
-#from utils.api_client import ApiClient
+from pages.checkout_page import CheckoutPage
+from utils.api_client import ApiClient
+from config.settings import CATALOG_URL
 
 
 @pytest.mark.skip(reason="🚧 E2E TESTS UNDER DEVELOPMENT - Page Objects not implemented")
@@ -22,7 +25,8 @@ class TestE2EOrderFlow:
 
     @pytest.mark.skip(reason="Page Objects not implemented yet - E2E development in progress")
     @pytest.mark.critical
-    def test_guest_order_flow(self, browser):
+    @pytest.mark.parametrize("test_product_name", [["The shellcoder's handbook", "Coders at Work"]])
+    def test_guest_order_flow(self, browser, main_page_url):
         """
         E2E: Guest user can add a product to basket and complete checkout.
         Steps:
@@ -34,15 +38,15 @@ class TestE2EOrderFlow:
             6. Proceed to checkout
             7. Verify successful order confirmation
         """
-        main_page = MainPage(browser)
-        catalog_page = CatalogPage(browser)
+        main_page = MainPage(browser, main_page_url)
+        catalog_page = CatalogPage(browser, catalog_url)
         product_page = ProductPage(browser)
         basket_page = BasketPage(browser)
         checkout_page = CheckoutPage(browser)
 
-        main_page.open()  # TODO: implement open()
-        main_page.go_to_catalog()  # TODO: navigate to catalog
-        catalog_page.select_product("Test Product")  # TODO: select product by name
+        main_page.open()
+        main_page.go_to_catalog()
+        catalog_page.select_product(test_product_name)
         product_page.add_to_basket()  # TODO: click Add to basket
         basket_page.should_contain_product("Test Product")  # TODO: verify product is in basket
         basket_page.should_match_price("Test Product")  # TODO: verify correct price

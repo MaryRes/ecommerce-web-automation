@@ -114,6 +114,11 @@ def base_url():
 
 
 @pytest.fixture
+def main_page_url():
+    return settings.MAIN_PAGE_URL
+
+
+@pytest.fixture
 def login_url():
     return settings.LOGIN_URL
 

@@ -23,7 +23,7 @@ class BasketPageLocators:
 class MainPageLocators:
     """Locators for main page"""
     BASKET_LINK_IN_HEADER = (By.CSS_SELECTOR, 'div[class*="basket-mini"] > span.btn-group > a[href*="basket"]')
-
+    CATALOG_LINK_IN_HEADER = (By.XPATH, '//ul[@class="dropdown-menu"]//a[contains(@href, "catalogue") and text()="All products"]')
 
 class LoginPageLocators:
     """Locators for login/registration page"""
@@ -60,9 +60,6 @@ class LoginPageLocators:
     REGISTRATION_SUCCESS = (By.CSS_SELECTOR, ".alert-success")
 
 
-
-
-
 class ProductPageLocators:
     """Locators for product page"""
 
@@ -93,3 +90,15 @@ class ProductPageLocators:
     PRODUCT_TITLE_ELEMENTS = [PRODUCT_NAME, MESSAGE_STRONG_TEXT, BREADCRUMB_LAST_ITEM]
     ITEM_PRICE_ELEMENTS = [PRODUCT_PRICE, PRODUCT_PRICE_INCLUDING_TAX]
     BASKET_TOTAL_ELEMENTS = [BASKET_TOTAL_NAVBAR, BASKET_TOTAL_MESSAGE]
+
+
+class CatalogPageLocators:
+    """Locators for catalog page"""
+    SIDE_CATEGORIES = (By.CSS_SELECTOR, '.side_categories')
+    PRODUCT_LIST = (By.CSS_SELECTOR, 'ol.row')
+    ALL_PRODUCT_CARDS = (By.CSS_SELECTOR, 'article.product_pod')
+    ALL_PRODUCT_LINKS = (By.CSS_SELECTOR, 'article.product_pod a')
+    ALL_ADD_TO_BASKET_BUTTONS = (By.CSS_SELECTOR, 'article.product_pod button.btn-add-to-basket')
+    PRODUCT_TITLE_IN_CARD = (By.CSS_SELECTOR, 'h3 a')
+    # Navigation
+    NEXT_PAGE_BUTTON = (By.CSS_SELECTOR, 'li.next a')

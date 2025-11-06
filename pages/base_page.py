@@ -14,7 +14,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from .locators import BasePageLocators
+from .locators import BasePageLocators, MainPageLocators
 
 logger = logging.getLogger(__name__)
 
