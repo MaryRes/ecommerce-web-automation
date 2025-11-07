@@ -90,7 +90,7 @@ ecommerce-web-automation/          # Root project directory
 │   ├── main_page.py               # Main page
 │   ├── catalog_page.py            # Catalog page
 │   ├── product_page.py            # Product details page
-│   ├── cart_page.py               # Shopping cart page
+│   ├── basket_page.py               # Shopping cart page
 │   ├── auth_page.py               # Authentication/registration
 │   ├── checkout_page.py           # Checkout page
 │   └── account_page.py            # User account page

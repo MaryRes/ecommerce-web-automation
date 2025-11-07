@@ -3,11 +3,15 @@ from selenium.webdriver.common.by import By
 
 class BasePageLocators:
     """Locators common for all pages"""
+    HOME_PAGE_LINK = (By.XPATH, "//a[text()='Oscar']")
     LOGIN_LINK = (By.CSS_SELECTOR, "#login_link")
     LOGIN_LINK_INVALID = (By.CSS_SELECTOR, "#login_link_inc")
     USER_ICON = (By.CSS_SELECTOR, "i.icon-user")
     SUCCESS_ALERT = (By.CSS_SELECTOR, ".alert-success")
     ERROR_ALERT = (By.CSS_SELECTOR, ".alert-danger")
+    LOGOUT_LINK = (By.CSS_SELECTOR, '#logout_link')
+    HEADER = (By.CSS_SELECTOR, '.header')
+    BODY = (By.CSS_SELECTOR, 'body')
 
 
 class BasketPageLocators:
@@ -19,7 +23,7 @@ class BasketPageLocators:
 class MainPageLocators:
     """Locators for main page"""
     BASKET_LINK_IN_HEADER = (By.CSS_SELECTOR, 'div[class*="basket-mini"] > span.btn-group > a[href*="basket"]')
-
+    CATALOG_LINK_IN_HEADER = (By.XPATH, '//ul[@class="dropdown-menu"]//a[contains(@href, "catalogue") and text()="All products"]')
 
 class LoginPageLocators:
     """Locators for login/registration page"""
@@ -41,6 +45,11 @@ class LoginPageLocators:
     REGISTER_CONFIRM_PASSWORD_FIELD = (By.CSS_SELECTOR, 'input[name="registration-password2"]')
     REGISTER_SUBMIT_BUTTON = (By.CSS_SELECTOR, 'button[name="registration_submit"]')
 
+    # message after incorrect registration
+    REGISTER_INCORRECT_MESSAGE = (By.CSS_SELECTOR, '.alert-danger')
+    # Password strength indicator
+    WEAK_PASSWORD_INDICATOR = (By.XPATH, "//div[input[@id='id_registration-password2']]//span[@class='error-block']")
+
     # Additional links
     FORGOT_PASSWORD_LINK = (By.CSS_SELECTOR, 'a[href*="password-reset"]')
 
@@ -49,9 +58,6 @@ class LoginPageLocators:
 
     # success message after registration
     REGISTRATION_SUCCESS = (By.CSS_SELECTOR, ".alert-success")
-
-
-
 
 
 class ProductPageLocators:
@@ -84,3 +90,15 @@ class ProductPageLocators:
     PRODUCT_TITLE_ELEMENTS = [PRODUCT_NAME, MESSAGE_STRONG_TEXT, BREADCRUMB_LAST_ITEM]
     ITEM_PRICE_ELEMENTS = [PRODUCT_PRICE, PRODUCT_PRICE_INCLUDING_TAX]
     BASKET_TOTAL_ELEMENTS = [BASKET_TOTAL_NAVBAR, BASKET_TOTAL_MESSAGE]
+
+
+class CatalogPageLocators:
+    """Locators for catalog page"""
+    SIDE_CATEGORIES = (By.CSS_SELECTOR, '.side_categories')
+    PRODUCT_LIST = (By.CSS_SELECTOR, 'ol.row')
+    ALL_PRODUCT_CARDS = (By.CSS_SELECTOR, 'article.product_pod')
+    ALL_PRODUCT_LINKS = (By.CSS_SELECTOR, 'article.product_pod a')
+    ALL_ADD_TO_BASKET_BUTTONS = (By.CSS_SELECTOR, 'article.product_pod button.btn-add-to-basket')
+    PRODUCT_TITLE_IN_CARD = (By.CSS_SELECTOR, 'h3 a')
+    # Navigation
+    NEXT_PAGE_BUTTON = (By.CSS_SELECTOR, 'li.next a')

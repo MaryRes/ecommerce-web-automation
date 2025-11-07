@@ -5,6 +5,8 @@ import time
 import logging
 import allure
 from typing import List, Tuple, Optional, Union, Any
+
+import pytest
 from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
@@ -12,7 +14,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from .locators import BasePageLocators
+from .locators import BasePageLocators, MainPageLocators
 
 logger = logging.getLogger(__name__)
 
@@ -71,8 +73,10 @@ class BasePage:
         """Check if element is present in DOM."""
         try:
             self._temporary_wait(timeout).until(EC.presence_of_element_located(locator))
+            logger.info(f"presence of element {locator} located")
             return True
         except NoSuchElementException:
+            logger.warning(f"element {locator} is NOT present within {timeout}")
             return False
 
     @allure.step("Check if element is visible: {locator}")
@@ -111,6 +115,20 @@ class BasePage:
         except TimeoutException:
             return False
 
+    @allure.step("Check user is logged in")
+    def _is_user_logged_in(self) -> bool:
+        """Check if user is logged in from ANY page."""
+        try:
+            logged_in_indicators = [
+                self.is_element_present(BasePageLocators.USER_ICON),
+                self.is_element_present(BasePageLocators.LOGOUT_LINK),
+                self.is_element_absent(BasePageLocators.LOGIN_LINK)
+            ]
+            return any(logged_in_indicators)
+        except Exception as e:
+            logger.warning(f"Error checking auth status: {e}")
+            return False
+
     # ====== WAIT METHODS ======
     @allure.step("Wait for presence of element: {locator}")
     def wait_for_presence(self, locator: Tuple[By, str], timeout: Optional[int] = None) -> WebElement:
@@ -143,7 +161,7 @@ class BasePage:
             return False
 
     @allure.step("Wait for URL to change from: {original_url}")
-    def wait_for_url_change(self, original_url: Optional[str] = None, timeout: Optional[int] = None) -> bool:
+    def _wait_for_url_change(self, original_url: Optional[str] = None, timeout: Optional[int] = None) -> bool:
         """Wait for URL to change from original URL."""
         original = original_url or self.browser.current_url
         try:
@@ -192,6 +210,23 @@ class BasePage:
         else:
             raise TimeoutException("Login page navigation timeout")
 
+    @allure.step("Navigate to home page")
+    def go_to_home_page(self) -> None:
+        """Navigate to home page."""
+        current_url = self.get_current_url()
+        self.click(BasePageLocators.HOME_PAGE_LINK)
+
+        if self._wait_for_url_change(current_url):
+            logger.info("Successfully navigated to home page")
+        else:
+            raise TimeoutException("Home page navigation timeout")
+
+
+    @allure.step("Logout user")
+    def logout_user(self):
+        """Logout user"""
+        self.click(BasePageLocators.LOGOUT_LINK)
+
     # ====== ALERT AND QUIZ METHODS ======
 
     @allure.step("Solve quiz from alert and accept")
@@ -217,22 +252,59 @@ class BasePage:
             raise
 
     # ===== UNIVERSAL VERIFICATION METHODS =====
+    @allure.step("Verify that user can navigate to home page")
+    def can_navigate_to_home_page(self):
+        try:
+            self.go_to_home_page()
+            # Verify home page is loaded properly
+            assert "error" not in self.browser.current_url.lower(), \
+                f"Error detected after navigation to home. URL: {self.browser.current_url}"
+            assert self.is_element_present(BasePageLocators.HEADER), \
+                "Header not found - page might be broken"
+
+        except Exception as e:
+            pytest.fail(f"Navigation broken: {e}")
+
+
+    @allure.step("Verify current page can be refreshed without errors")
+    def can_refresh_page_safely(self):
+        """Verify current page can be refreshed without errors."""
+        try:
+            initial_url = self.get_current_url().lower()
+            self.refresh()
+            current_url = self.get_current_url().lower()
+            assert "error" not in current_url, f"Error after refresh. URL: expected '{initial_url}', got '{current_url}'"
+            assert self.is_element_present(BasePageLocators.BODY), "Page body not found after refresh"
+
+            return True
+        except Exception as e:
+            logger.warning(f"Error after reloading the page: {e}")
+            return False
+
+
+
+
+
+
     @allure.step("Verify that element is clickable: {element_name}")
-    def should_be_element_clickable(self, locator: Tuple[By, str], element_name: str, timeout: Optional[int] = None) -> None:
+    def should_be_element_clickable(self, locator: Tuple[By, str], element_name: str,
+                                    timeout: Optional[int] = None) -> None:
         """Verify that element is clickable."""
 
         assert self.is_element_clickable(locator, timeout), f"Element {element_name} is not clickable"
         logger.debug("Element %s is clickable", element_name)
 
     @allure.step("Verify that element is present: {element_name}")
-    def should_be_element_present(self, locator: Tuple[By, str], element_name: str, timeout: Optional[int] = None) -> None:
+    def should_be_element_present(self, locator: Tuple[By, str], element_name: str,
+                                  timeout: Optional[int] = None) -> None:
         """Verify that element is present."""
 
         assert self.is_element_present(locator, timeout), f"Element {element_name} is not present"
         logger.debug("Element %s is present", element_name)
 
     @allure.step("Verify that element is accessible: {element_name}")
-    def should_be_element_accessible(self, locator: Tuple[By, str], element_name: str, timeout: Optional[int] = None) -> None:
+    def should_be_element_accessible(self, locator: Tuple[By, str], element_name: str,
+                                     timeout: Optional[int] = None) -> None:
         """Verify that element is accessible (visible and clickable)."""
 
         self.should_be_element_present(locator, element_name, timeout)
@@ -240,7 +312,8 @@ class BasePage:
         logger.debug("Element %s is accessible", element_name)
 
     @allure.step("Verify that element is NOT present: {element_name}")
-    def should_not_be_element_present(self, locator: Tuple[By, str], element_name: str, timeout: Optional[int] = None) -> None:
+    def should_not_be_element_present(self, locator: Tuple[By, str], element_name: str,
+                                      timeout: Optional[int] = None) -> None:
         """Verify that element is NOT present."""
         assert self.is_element_absent(locator, timeout), f"Element {element_name} is present but should not be"
         logger.debug("Element %s is not present as expected", element_name)
@@ -271,19 +344,94 @@ class BasePage:
         assert expected_substring in actual_text, f"Element {element_name} text does not contain '{expected_substring}'"
         logger.debug("Element %s text contains expected substring: %s", element_name, expected_substring)
 
-
     # ==============
     def should_be_error_message(self) -> None:
         """Verify that error message is displayed."""
         assert self.is_element_present(BasePageLocators.ERROR_ALERT), "Error message is not displayed"
         logger.debug("Error message is displayed")
 
-    # ====== ASSERTION METHODS ======
+    @allure.step("Verify user is logged in")
+    def should_be_logged_in(self) -> None:
+        """Verify user is logged in from any page."""
+        assert self._is_user_logged_in(), "User is not logged in"
+        logger.info("User is logged in - verified")
+
+    @allure.step("Verify user is NOT logged in")
+    def should_not_be_logged_in(self) -> None:
+        """Verify user is NOT logged in from any page."""
+        assert not self._is_user_logged_in(), "User is logged in but shouldn't be"
+        logger.info("User is not logged in - verified")
+
     @allure.step("Verify that login link is present")
     def should_have_login_link(self) -> None:
         """Verify that login link is present."""
         assert self.is_element_present(BasePageLocators.LOGIN_LINK), "Login link is not present"
 
+    # ===== security ====
+    def should_not_contain_sql_errors(self):
+        """Check for SQL errors in VISIBLE TEXT only - ignore HTML/CSS."""
+
+        visible_text = self.browser.find_element(By.TAG_NAME, "body").text.lower()
+
+        # Только фразы, которые точно указывают на SQL ошибки
+        sql_error_phrases = [
+            "sql syntax",
+            "mysql error",
+            "postgresql error",
+            "oracle error",
+            "database error",
+            "query failed",
+            "unclosed quotation",
+            "you have an error in your sql syntax",
+            "warning: mysql",
+            "warning: postgresql"
+        ]
+
+        found_errors = []
+        for error in sql_error_phrases:
+            if error in visible_text:
+                found_errors.append(error)
+
+        assert len(found_errors) == 0, f"SQL errors exposed: {', '.join(found_errors)}"
+
+    def should_not_contain_database_errors(self):
+        """Check for database errors in VISIBLE TEXT only."""
+        visible_text = self.browser.find_element(By.TAG_NAME, "body").text.lower()
+
+        # Только фразы, которые точно указывают на ошибки БД
+        db_error_phrases = [
+            "unknown column",
+            "unknown table",
+            "table doesn't exist",
+            "column doesn't exist",
+            "database connection",
+            "constraint violation",
+            "foreign key violation",
+            "primary key violation"
+        ]
+
+        found_errors = []
+        for error in db_error_phrases:
+            if error in visible_text:
+                found_errors.append(error)
+
+        assert len(found_errors) == 0, f"Database errors exposed: {', '.join(found_errors)}"
+
+
+    def should_not_contain_stack_trace(self):
+        """Verify no stack trace or technical error details."""
+        page_text = self.browser.page_source
+        stack_trace_indicators = [
+            "exception", "stack trace", "traceback", "at line",
+            "file://", ".java", ".py", "runtime error",
+            "nullpointer", "indexoutofbounds", "arrayindex"
+        ]
+
+        for indicator in stack_trace_indicators:
+            assert indicator.lower() not in page_text.lower(), \
+                f"Stack trace exposed: {indicator}"
+
+    # ====== ASSERTION METHODS ======
     @allure.step("Assert that element text equals expected text: {expected_text}")
     def assert_text_equals(self, locator: Tuple[By, str], expected_text: str) -> None:
         """Assert that element text equals expected text."""

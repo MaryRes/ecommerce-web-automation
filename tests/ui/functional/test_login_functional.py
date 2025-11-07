@@ -7,6 +7,7 @@ Tests cover:
 - Security testing (injection attacks)
 - Registration flows (new user sign-up)
 """
+import logging
 import time
 
 import pytest
@@ -30,6 +31,8 @@ class TestLoginFunctional:
     @allure.tag("positive", "authentication")
     def test_login_with_valid_credentials(self, browser, login_url):
         """Verify successful login with correct credentials."""
+
+        # TODO: make_new_user with valid user_credentials creation before every test to avoid error 500!!!
         login_page = LoginPage(browser, login_url)
 
         with allure.step("Open login page"):
@@ -63,8 +66,8 @@ class TestLoginFunctional:
             login_page.should_be_invalid_email_message()
 
         with allure.step("Verify user NOT logged in"):
+            login_page.should_not_be_logged_in()
             login_page.should_be_login_page()
-            login_page.should_be_login_url()
 
     @pytest.mark.new
     @allure.title("Login with non-existent email")
@@ -88,8 +91,8 @@ class TestLoginFunctional:
             login_page.should_be_invalid_email_message()
 
         with allure.step("Verify user NOT logged in"):
+            login_page.should_not_be_logged_in()
             login_page.should_be_login_page()
-            login_page.should_be_login_url()
 
     @pytest.mark.new
     @allure.title("Login with incorrect password")
@@ -114,8 +117,8 @@ class TestLoginFunctional:
             login_page.should_be_invalid_password_message()
 
         with allure.step("Verify user NOT logged in"):
+            login_page.should_not_be_logged_in()
             login_page.should_be_login_page()
-            login_page.should_be_login_url()
 
     @allure.title("Login with empty credentials")
     @allure.severity(allure.severity_level.NORMAL)
@@ -144,26 +147,63 @@ class TestLoginFunctional:
                 login_page.should_be_invalid_password_message()
 
         with allure.step("Verify user NOT logged in"):
+            login_page.should_not_be_logged_in()
             login_page.should_be_login_page()
-            login_page.should_be_login_url()
 
-    @allure.title("Security: SQL injection attempt in login")
+    @pytest.mark.parametrize("sql_payload", [
+        "' OR '1'='1",
+        "' OR 1=1--",
+        "admin'--",
+        "' UNION SELECT 1,2,3--",
+        "'; DROP TABLE users--",
+        "' OR 'a'='a",
+        "1'1",
+        "\\' OR \\'1\\'=\\'1",
+        "test@test.com' OR '1'='1",
+        "something' OR email IS NOT NULL AND '1'='1"
+    ], ids=[
+        "basic_or_condition",
+        "comment_bypass",
+        "admin_access_attempt",
+        "union_data_extraction",
+        "destructive_drop_table",
+        "always_true_condition",
+        "quote_manipulation",
+        "escaped_quotes",
+        "email_with_injection",
+        "complex_condition"
+    ])
+    @allure.title("Security: SQL injection attempt with payload: {sql_payload}")
     @allure.severity(allure.severity_level.CRITICAL)
     @allure.tag("security", "negative")
-    def test_login_with_sql_injection_attempt(self, browser, login_url):
+    def test_login_with_sql_injection_attempt(self, browser, login_url, sql_payload):
         """Verify system is protected against SQL injection."""
         login_page = LoginPage(browser, login_url)
+        user_credentials = data_manager.valid_user
+        email = user_credentials["email"]
+        password = user_credentials["password"]
 
         with allure.step("Open login page"):
             login_page.open()
 
         with allure.step("Attempt SQL injection in email field"):
-            # Use test_data.sql_injection
-            user_credentials = data_manager.sql_injection
+            login_page.login_user(sql_payload, password)
 
         with allure.step("Verify system rejects injection attempt safely"):
-            # TODO: Implement security validation
-            pass
+            login_page.should_be_invalid_email_message()
+
+        with allure.step("Verify user NOT logged in"):
+            login_page.should_not_be_logged_in()
+
+        with allure.step("Verify user is on login page"):
+            login_page.should_be_login_page()
+
+        with allure.step("Verify login form still functional"):
+            login_page.login_user(email, password)
+            login_page.should_be_logged_in()
+
+        with allure.step("Cleanup: logout for next test case"):
+            login_page.logout_user()
 
     @allure.title("Login with very long password")
     @allure.severity(allure.severity_level.MINOR)
@@ -176,115 +216,15 @@ class TestLoginFunctional:
             login_page.open()
 
         with allure.step("Attempt login with very long password"):
-            # TODO: Use test_data.weak_passwords for long password
-            pass
+            email = data_manager.valid_user["email"]
+            long_password = "A" * 1000  # Example of a very long password
+            login_page.login_user(email, long_password)
 
         with allure.step("Verify system handles long input appropriately"):
-            # TODO: Implement input length validation
-            pass
+            login_page.should_be_invalid_password_message()
+
+        with allure.step("Verify user NOT logged in"):
+            login_page.should_not_be_logged_in()
+            login_page.should_be_login_page()
 
 
-@pytest.mark.functional
-@allure.epic("Authentication")
-@allure.feature("Registration Functional Tests")
-class TestRegistrationFunctional:
-    """Functional tests for user registration scenarios."""
-
-    @allure.title("Successful new user registration")
-    @allure.severity(allure.severity_level.CRITICAL)
-    @allure.tag("positive", "registration")
-    def test_successful_new_user_registration(self, browser, login_url):
-        """Verify new user can register successfully."""
-        login_page = LoginPage(browser, login_url)
-
-        with allure.step("Open registration page"):
-            login_page.open()
-
-        with allure.step("Generate unique email for registration"):
-            # TODO: Use test_data.generate_unique_email()
-            pass
-
-        with allure.step("Fill registration form with valid data"):
-            # TODO: Use test_data.strong_passwords
-            pass
-
-        with allure.step("Submit registration form"):
-            # TODO: Implement registration submission
-            pass
-
-        with allure.step("Verify registration success"):
-            # TODO: Implement registration success verification
-            pass
-
-    @allure.title("Registration with weak password")
-    @allure.severity(allure.severity_level.NORMAL)
-    @allure.tag("negative", "validation")
-    @pytest.mark.parametrize("weak_password", data_manager.weak_passwords[:2])  # Test first 2 cases
-    def test_registration_with_weak_password(self, browser, login_url, weak_password):
-        """Verify system enforces password strength requirements."""
-        login_page = LoginPage(browser, login_url)
-
-        with allure.step("Open registration page"):
-            login_page.open()
-
-        with allure.step("Attempt registration with weak password"):
-            # TODO: Implement weak password registration attempt
-            pass
-
-        with allure.step("Verify password strength error is shown"):
-            # TODO: Implement password strength validation
-            pass
-
-    @allure.title("Registration with password mismatch")
-    @allure.severity(allure.severity_level.NORMAL)
-    @allure.tag("negative", "validation")
-    def test_registration_with_password_mismatch(self, browser, login_url):
-        """Verify system validates password confirmation."""
-        login_page = LoginPage(browser, login_url)
-
-        with allure.step("Open registration page"):
-            login_page.open()
-
-        with allure.step("Attempt registration with mismatched passwords"):
-            # TODO: Implement password mismatch scenario
-            pass
-
-        with allure.step("Verify password mismatch error is shown"):
-            # TODO: Implement password confirmation validation
-            pass
-
-    @allure.title("Registration with existing email")
-    @allure.severity(allure.severity_level.NORMAL)
-    @allure.tag("negative", "validation")
-    def test_registration_with_existing_email(self, browser, login_url):
-        """Verify system prevents duplicate email registration."""
-        login_page = LoginPage(browser, login_url)
-
-        with allure.step("Open registration page"):
-            login_page.open()
-
-        with allure.step("Attempt registration with existing email"):
-            # TODO: Use test_data.valid_user email
-            pass
-
-        with allure.step("Verify duplicate email error is shown"):
-            # TODO: Implement duplicate email validation
-            pass
-
-    @allure.title("Security: XSS attempt in registration")
-    @allure.severity(allure.severity_level.CRITICAL)
-    @allure.tag("security", "negative")
-    def test_registration_with_xss_attempt(self, browser, login_url):
-        """Verify system is protected against XSS attacks."""
-        login_page = LoginPage(browser, login_url)
-
-        with allure.step("Open registration page"):
-            login_page.open()
-
-        with allure.step("Attempt XSS injection in registration fields"):
-            # TODO: Use test_data.xss_attempt
-            pass
-
-        with allure.step("Verify system sanitizes input safely"):
-            # TODO: Implement XSS protection validation
-            pass

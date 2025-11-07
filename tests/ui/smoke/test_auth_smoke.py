@@ -5,7 +5,7 @@ from pages.login_page import LoginPage
 import random
 
 # pytest tests/test_auth_smoke.py -v
-# TODO: add allure steps
+
 
 logger = logging.getLogger(__name__)
 

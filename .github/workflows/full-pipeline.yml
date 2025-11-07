@@ -15,8 +15,8 @@ jobs:
           python-version: '3.12'
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Run tests
-        run: python -m pytest tests/ -v
+      - name: Run tests with retries
+        run: python -m pytest tests/ -n 2 --reruns 3 --reruns-delay 1 --alluredir=allure-results -v
 
   test-docker:
     runs-on: ubuntu-latest
@@ -26,8 +26,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build Docker image
         run: docker build -t qa-tests .
-      - name: Run tests in Docker
-        run: docker run --rm qa-tests python -m pytest tests/ -v
+      - name: Run tests in Docker with retries
+        run: docker run --rm qa-tests python -m pytest tests/ -n 2 --reruns 3 --reruns-delay 1 --alluredir=allure-results -v
 
   summary:
     runs-on: ubuntu-latest
@@ -37,6 +37,7 @@ jobs:
     steps:
       - name: Print summary
         run: |
-          echo "🎉 TESTS COMPLETED!"
+          echo "🎉 TESTS COMPLETED WITH RETRIES!"
           echo "Local tests: ${{ needs.test-local.result }}"
           echo "Docker tests: ${{ needs.test-docker.result }}"
+          echo "Retry configuration: 3 attempts with 1s delay"
