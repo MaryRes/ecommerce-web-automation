@@ -1,0 +1,56 @@
+# .github/workflows/smart-docker-pipeline.yml
+name: Smart Docker Pipeline
+
+on:
+  pull_request:
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
+  push:
+    branches: [main]
+
+jobs:
+  test-smart-docker:
+    runs-on: ubuntu-latest
+    name: "Test: Smart Docker Selection"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t qa-tests .
+      - name: Detect and run affected tests in Docker
+        run: |
+          if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "🚀 MAIN BRANCH - Running full test suite in Docker"
+            docker run --rm qa-tests python -m pytest tests/ -n 2 --reruns 3 --reruns-delay 1 --alluredir=allure-results -v
+          else
+            echo "🔍 PR - Running smart test selection in Docker"
+            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD || echo "")
+            echo "Changed files: $CHANGED_FILES"
+            
+            # Command for pytest
+            if echo "$CHANGED_FILES" | grep -q -E "(tests/ui/|pages/|utils/locators.py)"; then
+              echo "📱 Running UI tests in Docker"
+              docker run --rm qa-tests python -m pytest tests/ui/ -n 2 --reruns 3 --reruns-delay 1 --alluredir=allure-results -v
+            elif echo "$CHANGED_FILES" | grep -q -E "(tests/api/|data/api_endpoints.py|utils/api_client.py)"; then
+              echo "🔌 Running API tests in Docker"
+              docker run --rm qa-tests python -m pytest tests/api/ -n 2 --reruns 3 --reruns-delay 1 --alluredir=allure-results -v
+            elif echo "$CHANGED_FILES" | grep -q "tests/e2e/"; then
+              echo "🔄 Running E2E tests in Docker"
+              docker run --rm qa-tests python -m pytest tests/e2e/ -n 2 --reruns 3 --reruns-delay 1 --alluredir=allure-results -v
+            else
+              echo "✅ Running smoke tests only in Docker"
+              docker run --rm qa-tests python -m pytest tests/ui/smoke/ tests/api/ -n 2 --reruns 3 --reruns-delay 1 --alluredir=allure-results -v
+            fi
+          fi
+
+  summary:
+    runs-on: ubuntu-latest
+    name: "Test Summary"
+    needs: [test-smart-docker]
+    if: always()
+    steps:
+      - name: Print summary
+        run: |
+          echo "🎉 SMART DOCKER TESTS COMPLETED!"
+          echo "Result: ${{ needs.test-smart-docker.result }}"
+          echo "Event: ${{ github.event_name }}"

@@ -233,3 +233,6 @@ docker-compose.override.yml
 reports/
 allure-report/
 .DS_Store
+
+# My script to print project structure
+print_project_structure.py

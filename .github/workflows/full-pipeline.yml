@@ -1,7 +1,11 @@
 # .github/workflows/full-pipeline.yml
 name: Full CI Pipeline
 
-on: [push, pull_request]
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
 
 jobs:
   test-local:
