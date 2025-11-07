@@ -54,7 +54,7 @@ POLL_FREQUENCY = 0.5         # How often to check for elements
 
 # ==================== BROWSER CONFIGURATION ====================
 DEFAULT_BROWSER = "chrome"
-DEFAULT_HEADLESS = True      # Headless by default for CI
+DEFAULT_HEADLESS = True     # Headless by default for CI
 DEFAULT_LANGUAGE = "en"      # Default browser language
 
 # Browser window size

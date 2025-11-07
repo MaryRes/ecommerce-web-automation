@@ -56,5 +56,16 @@ class ProductPage(BasePage):
         self.click(ProductPageLocators.ADD_TO_BASKET_BTN)
         logger.info("Clicked 'Add to Basket' button")
 
+    @allure.step("Click basket link in header to go to basket page")
+    def go_to_basket_from_header(self):
+        """
+        Click the basket link in the header to navigate to the basket page.
+        """
+
+        self.click(ProductPageLocators.BASKET_LINK_IN_HEADER)
+        success = self._wait_for_url_contains("/basket")
+        assert success, "Failed to navigate to basket page"
+        logger.info("Navigated to basket page")
+
 
 

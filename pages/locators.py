@@ -16,8 +16,8 @@ class BasePageLocators:
 
 class BasketPageLocators:
     """Locators for basket/cart page"""
-    BASKET_CONTENT = (By.CSS_SELECTOR, 'div[id="content_inner"]')
-    BASKET_ITEMS = (By.CSS_SELECTOR, 'div[id="content_inner"] form')
+    ALL_BASKET_ITEMS = (By.CSS_SELECTOR, '[id="basket_formset"]')
+    BASKET_ITEM_NAME = (By.CSS_SELECTOR, 'div[class="basket-items"] h3 a')
 
 
 class MainPageLocators:

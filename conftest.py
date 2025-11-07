@@ -13,6 +13,7 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.firefox.service import Service as FirefoxService
 import time
 from data.api_endpoints import API_ENDPOINTS
+import allure
 
 # Import project settings
 from config import settings
@@ -186,3 +187,21 @@ def test_timer(request):
     duration = time.time() - start_time
     if duration > settings.SLOW_TEST_THRESHOLD:
         logger.warning(f"⏱ Slow test '{request.node.name}' took {duration:.2f}s")
+
+
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    report = outcome.get_result()
+
+    if report.when == "call" and report.failed:
+        browser = item.funcargs.get('browser')
+        if browser:
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            test_name = item.name
+            allure.attach(
+                browser.get_screenshot_as_png(),
+                name=f"screenshot_on_failure_{test_name}_{timestamp}",
+                attachment_type=allure.attachment_type.PNG
+            )
