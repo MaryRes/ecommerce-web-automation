@@ -10,6 +10,7 @@ LOGIN_URL = f"{BASE_URL}/accounts/login/"
 CATALOG_URL = f"{BASE_URL}/catalogue/"
 BASKET_URL = f"{BASE_URL}/basket/"
 REGISTER_URL = f"{BASE_URL}/accounts/register/"
+CHECKOUT_URL = f"{BASE_URL}/checkout/"
 MAIN_PAGE_URL = BASE_URL + "/"
 
 # Product URLs for specific tests
