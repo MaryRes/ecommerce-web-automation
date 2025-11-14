@@ -4,7 +4,7 @@
 
 import pytest
 
-from conftest import catalog_url
+from conftest import catalog_url, basket_url, checkout_url
 from pages.main_page import MainPage
 from pages.catalog_page import CatalogPage
 from pages.product_page import ProductPage
@@ -41,18 +41,19 @@ class TestE2EOrderFlow:
         """
         main_page = MainPage(browser, main_page_url)
         catalog_page = CatalogPage(browser, catalog_url)
-        product_page = ProductPage(browser)
-        basket_page = BasketPage(browser)
-        checkout_page = CheckoutPage(browser)
+
+        basket_page = BasketPage(browser, basket_url)
+        checkout_page = CheckoutPage(browser, checkout_url)
 
         main_page.open()
         main_page.go_to_catalog()
         catalog_page.select_product(test_product_name)
+        product_page = ProductPage(browser, browser.current_url)
         product_page.add_to_basket()  # click Add to basket
         product_page.go_to_basket_from_header()  # navigate to basket page
-        basket_page.should_contain_product(test_product_name)  # TODO: verify product is in basket
-        basket_page.should_match_price("Test Product")  # TODO: verify correct price
-        basket_page.proceed_to_checkout()  # TODO: click "Proceed to checkout"
+        basket_page.should_contain_product(test_product_name)  # verify product is in basket
+        basket_page.should_match_price(test_product_name)  # verify correct price
+        basket_page.proceed_to_checkout()  # click "Proceed to checkout"
         checkout_page.should_display_confirmation()  # TODO: verify confirmation page is shown
 
     @pytest.mark.skip(reason="Page Objects not implemented yet - E2E development in progress")
