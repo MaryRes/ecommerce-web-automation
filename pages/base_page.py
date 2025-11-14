@@ -514,3 +514,13 @@ class BasePage:
     def type_text(self, locator: Tuple[By, str], text: str, timeout: Optional[int] = None) -> None:
         """Legacy alias for send_keys."""
         self.send_keys(locator, text, timeout)
+
+    @allure.step("Find element: {locator}")
+    def find_element(self, locator: Tuple[By, str], timeout: Optional[int] = None) -> WebElement:
+        """Find single element with wait."""
+        return self.wait_for_presence(locator, timeout)
+
+    @allure.step("Find elements: {locator}")
+    def find_elements(self, locator: Tuple[By, str], timeout: Optional[int] = None) -> List[WebElement]:
+        """Find multiple elements with wait."""
+        return self.wait_for_presence_of_all(locator, timeout)
