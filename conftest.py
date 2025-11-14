@@ -134,6 +134,11 @@ def basket_url():
     return settings.BASKET_URL
 
 
+@pytest.fixture
+def checkout_url():
+    return settings.CHECKOUT_URL
+
+
 # Test data fixtures
 @pytest.fixture
 def valid_user():

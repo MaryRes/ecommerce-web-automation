@@ -16,9 +16,20 @@ class BasePageLocators:
 
 class BasketPageLocators:
     """Locators for basket/cart page"""
-    ALL_BASKET_ITEMS = (By.CSS_SELECTOR, '[id="basket_formset"]')
-    BASKET_ITEM_NAME = (By.CSS_SELECTOR, 'div[class="basket-items"] h3 a')
+    BASKET_ITEM = (By.CLASS_NAME, "basket-items")
+    BASKET_ITEM_NAME = (By.CSS_SELECTOR, ".basket-items h3 a")
+    BASKET_ITEM_PRICE = (By.CSS_SELECTOR, ".basket-items .price_color")
 
+    BASKET_ITEM_ROWS = (By.CSS_SELECTOR, "div.basket-items > div.row")
+    PRODUCT_NAME_IN_BASKET = (By.CSS_SELECTOR, "div.col-sm-4 h3 a")
+    PRODUCT_PRICE_PER_UNIT = (By.CSS_SELECTOR, "div.col-sm-1 p.price_color")
+    PRODUCT_TOTAL_PRICE = (By.CSS_SELECTOR, "div.col-sm-2 p.price_color")
+    PRODUCT_QUANTITY_INPUT = (By.CSS_SELECTOR, "input[name*='quantity']")
+
+    PRODUCT_ROW_BY_NAME = lambda name: (By.XPATH,
+    f"//div[contains(@class, 'basket-items')]//a[contains(., '{name}')]/ancestor::div[@class='row']")
+    EMPTY_BASKET_MESSAGE = (By.XPATH, "//div[@id='content_inner']//p[contains(text(), 'Your basket is empty')]")
+    CHECKOUT_BUTTON = (By.CSS_SELECTOR, 'a.btn-primary[href*="checkout"]')
 
 class MainPageLocators:
     """Locators for main page"""
@@ -71,7 +82,7 @@ class ProductPageLocators:
 
     # Product info (same before/after adding to basket)
     PRODUCT_NAME = (By.CSS_SELECTOR, '[class*=product_main] h1')
-    PRODUCT_PRICE = (By.CSS_SELECTOR, '[class*=price_color]')
+    PRODUCT_PRICE = (By.CSS_SELECTOR, ".product_main .price_color")
 
     # Messages and notifications
     BASKET_MESSAGE_BOX = (By.CSS_SELECTOR, '[id="messages"]')
